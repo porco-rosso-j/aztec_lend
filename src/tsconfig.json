@@ -1,0 +1,25 @@
+{
+    "compilerOptions": {
+      "target": "es2020",
+      "module": "NodeNext",
+      "moduleResolution": "NodeNext",
+      "lib": ["dom", "esnext", "es2017.object"],
+      "rootDir": "../",
+      "outDir": "./dest",
+      "strict": true,
+      "declaration": true,
+      "allowSyntheticDefaultImports": true,
+      "esModuleInterop": true,
+      "downlevelIteration": true,
+      "resolveJsonModule": true,
+      "skipLibCheck": true,
+    },
+    "include": [
+        "test",
+        "source",
+      ],  
+    "exclude": [
+        "node_modules"
+    ],
+    "references": []
+  }
