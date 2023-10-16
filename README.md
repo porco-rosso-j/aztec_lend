@@ -76,3 +76,10 @@ Object FunctionData not registered for serialization TO JSON
       at Object.<anonymous> (cross_chain_messaging.test.ts:146:33)
 
 ```
+
+### References
+
+- [aztec-packages/l1-contracts/test/portals/TokenPortal.sol@aztec-packages-v0.8.14](https://github.com/AztecProtocol/aztec-packages/blob/aztec-packages-v0.8.14/l1-contracts/test/portals/TokenPortal.sol)
+- [yarn-project/end-to-end/src/e2e_cross_chain_messaging.test.ts](https://github.com/AztecProtocol/aztec-packages/blob/aztec-packages-v0.8.14/yarn-project/end-to-end/src/e2e_cross_chain_messaging.test.ts)
+- [e2e_cross_chain_messaging-test-fix-commit](https://github.com/AztecProtocol/dev-rel/pull/82/files#diff-31f85d8b2d40b30d57fbfb8f5568de30f525c635021883db33dbf4266a2e3d9e)
+- [token-bridge-contract-latest](https://github.com/AztecProtocol/aztec-packages/blob/aztec-packages-v0.8.11/yarn-project/noir-contracts/src/contracts/token_bridge_contract/src/main.nr)
