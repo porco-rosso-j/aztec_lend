@@ -37,12 +37,11 @@ pub fn compute_deposit_public_content_hash(
         hash_bytes[i + 4] = input_token_portal_bytes[i];
         hash_bytes[i + 36] = in_amount_bytes[i];
         hash_bytes[i + 68] = output_token_portal_bytes[i];
-        hash_bytes[i + 100] = amount_out_min_bytes[i];
-        hash_bytes[i + 132] = aztec_recipient_bytes[i];
-        hash_bytes[i + 164] = secret_hash_for_L1_to_l2_message_bytes[i];
-        hash_bytes[i + 196] = deadline_for_L1_to_l2_message_bytes[i];
-        hash_bytes[i + 228] = canceller_bytes[i];
-        hash_bytes[i + 260] = caller_on_L1_bytes[i];
+        hash_bytes[i + 100] = aztec_recipient_bytes[i];
+        hash_bytes[i + 132] = secret_hash_for_L1_to_l2_message_bytes[i];
+        hash_bytes[i + 164] = deadline_for_L1_to_l2_message_bytes[i];
+        hash_bytes[i + 196] = canceller_bytes[i];
+        hash_bytes[i + 228] = caller_on_L1_bytes[i];
     }
 
     let content_hash = sha256_to_field(hash_bytes);
@@ -64,7 +63,7 @@ pub fn compute_deposit_private_content_hash(
     caller_on_L1: Field,
 ) -> Field {
     let mut hash_bytes: [u8; 260] = [0; 260]; // 8 fields of 32 bytes each + 4 bytes fn selector
-    
+
     let input_token_portal_bytes = input_asset_bridge_portal_address.to_be_bytes(32);
     let in_amount_bytes = input_amount.to_be_bytes(32);
     let output_token_portal_bytes = output_asset_bridge_portal_address.to_be_bytes(32);

@@ -23,7 +23,7 @@ contract SavingsDAI {
     use dep::authwit::auth::{IS_VALID_SELECTOR, assert_current_call_valid_authwit_public, compute_authwit_message_hash};
     
     use crate::interfaces::{Token, TokenBridge};
-    use crate::util::{compute_swap_private_content_hash, compute_swap_public_content_hash};
+    use crate::util::{compute_deposit_public_content_hash, compute_deposit_private_content_hash};
 
     struct Storage {
         // like with account contracts, stores the approval message on a slot and tracks if they are active
@@ -50,20 +50,16 @@ contract SavingsDAI {
     
     #[aztec(private)]
     fn constructor() {}
-// docs:end:uniswap_setup
 
 // docs:start:swap_public
     #[aztec(public)]
-    fn swap_public(
+    fn deposit_public(
         sender: AztecAddress,
         input_asset_bridge: AztecAddress, 
         input_amount: Field,
         output_asset_bridge: AztecAddress,
         // params for using the transfer approval
         nonce_for_transfer_approval: Field,
-        // params for the swap
-        uniswap_fee_tier: Field,
-        minimum_output_amount: Field,
         // params for the depositing output_asset back to Aztec
         recipient: AztecAddress,
         secret_hash_for_L1_to_l2_message: Field,
@@ -104,12 +100,10 @@ contract SavingsDAI {
         assert(input_asset_bridge_portal_address != 0, "L1 portal address of input_asset's bridge is 0");
         assert(output_asset_bridge_portal_address != 0, "L1 portal address of output_asset's bridge is 0");
 
-        let content_hash = compute_swap_public_content_hash(
+        let content_hash = compute_deposit_public_content_hash(
             input_asset_bridge_portal_address,
             input_amount,
-            uniswap_fee_tier,
             output_asset_bridge_portal_address,
-            minimum_output_amount,
             recipient.address,
             secret_hash_for_L1_to_l2_message,
             deadline_for_L1_to_l2_message,
@@ -120,9 +114,7 @@ contract SavingsDAI {
 
         1
     }
-// docs:end:swap_public
 
-// docs:start:swap_private
     #[aztec(private)]
     fn swap_private(
         input_asset: AztecAddress, // since private, we pass here and later assert that this is as expected by input_bridge
@@ -131,9 +123,6 @@ contract SavingsDAI {
         output_asset_bridge: AztecAddress,
         // params for using the unshield approval
         nonce_for_unshield_approval: Field,
-        // params for the swap
-        uniswap_fee_tier: Field, // which uniswap tier to use (eg 3000 for 0.3% fee)
-        minimum_output_amount: Field, // minimum output amount to receive (slippage protection for the swap)
         // params for the depositing output_asset back to Aztec
         secret_hash_for_redeeming_minted_notes: Field, // secret hash used to redeem minted notes at a later time. This enables anyone to call this function and mint tokens to a user on their behalf
         secret_hash_for_L1_to_l2_message: Field, // for when l1 uniswap portal inserts the message to consume output assets on L2
@@ -170,12 +159,10 @@ contract SavingsDAI {
         assert(input_asset_bridge_portal_address != 0, "L1 portal address of input_asset's bridge is 0");
         assert(output_asset_bridge_portal_address != 0, "L1 portal address of output_asset's bridge is 0");
 
-        let content_hash = compute_swap_private_content_hash(
+        let content_hash = compute_deposit_private_content_hash(
             input_asset_bridge_portal_address,
             input_amount,
-            uniswap_fee_tier,
             output_asset_bridge_portal_address,
-            minimum_output_amount,
             secret_hash_for_redeeming_minted_notes,
             secret_hash_for_L1_to_l2_message,
             deadline_for_L1_to_l2_message,
