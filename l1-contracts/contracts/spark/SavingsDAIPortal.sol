@@ -58,7 +58,7 @@ contract SavingsDaiPortal {
      * @param _withCaller - When true, using `msg.sender` as the caller, otherwise address(0)
      * @return The entryKey of the deposit transaction in the Inbox
      */
-    function swapPublic(
+    function depositPublic(
         address _inputTokenPortal, // portal DAI
         uint256 _inAmount,
         address _outputTokenPortal, // portal sDAI
@@ -140,11 +140,10 @@ contract SavingsDaiPortal {
      * @param _withCaller - When true, using `msg.sender` as the caller, otherwise address(0)
      * @return The entryKey of the deposit transaction in the Inbox
      */
-    function swapPrivate(
+    function depositPrivate(
         address _inputTokenPortal,
         uint256 _inAmount,
         address _outputTokenPortal,
-        uint256 _amountOutMinimum,
         bytes32 _secretHashForRedeemingMintedNotes,
         bytes32 _secretHashForL1ToL2Message,
         uint32 _deadlineForL1ToL2Message,
@@ -162,11 +161,10 @@ contract SavingsDaiPortal {
             // prevent stack too deep errors
             vars.contentHash = Hash.sha256ToField(
                 abi.encodeWithSignature(
-                    "deposit_private(address,uint256,address,uint256,bytes32,bytes32,uint32,address,address)",
+                    "deposit_private(address,uint256,address,bytes32,bytes32,uint32,address,address)",
                     _inputTokenPortal,
                     _inAmount,
                     _outputTokenPortal,
-                    _amountOutMinimum,
                     _secretHashForRedeemingMintedNotes,
                     _secretHashForL1ToL2Message,
                     _deadlineForL1ToL2Message,
