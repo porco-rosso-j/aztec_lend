@@ -1,40 +1,21 @@
-import { beforeEach, describe, expect, it, jest } from "@jest/globals";
 import {
   AccountWallet,
   AztecAddress,
   DebugLogger,
   EthAddress,
   Fr,
+  TxStatus,
   computeAuthWitMessageHash,
-  createDebugLogger,
-  createPXEClient,
-  getSandboxAccountsWallets,
-  waitForSandbox,
-} from "@aztec/aztec.js";
+} from '@aztec/aztec.js';
+import { TokenBridgeContract, TokenContract } from '@aztec/noir-contracts/types';
 
-import { TokenContract, TokenBridgeContract } from "@aztec/noir-contracts/types";
-// import { TokenBridgeContract } from "./fixtures/TokenBridge.js";
-import { CrossChainTestHarness } from "./fixtures/cross_chain_test_harness.js";
+import { delay, setup } from './fixtures/utils.js';
+import { CrossChainTestHarness } from './fixtures/cross_chain_test_harness.js';
 
-import { delay } from "./fixtures/utils.js";
-import { mnemonicToAccount } from "viem/accounts";
-import { createPublicClient, createWalletClient, http } from "viem";
-import { foundry } from "viem/chains";
-
-const {
-  PXE_URL = "http://localhost:8080",
-  ETHEREUM_HOST = "http://localhost:8545",
-} = process.env;
-const MNEMONIC = "test test test test test test test test test test test junk";
-const hdAccount = mnemonicToAccount(MNEMONIC);
-
-
-
-describe("e2e_cross_chain_messaging", () => {
-  jest.setTimeout(150_000);
-
+describe('e2e_cross_chain_messaging', () => {
   let logger: DebugLogger;
-  // include code:
+  let teardown: () => Promise<void>;
+
   let user1Wallet: AccountWallet;
   let user2Wallet: AccountWallet;
   let ethAccount: EthAddress;
@@ -46,32 +27,14 @@ describe("e2e_cross_chain_messaging", () => {
   let outbox: any;
 
   beforeEach(async () => {
-
-    logger = createDebugLogger("aztec:canary_uniswap");
-    const pxe = createPXEClient(PXE_URL);
-    await waitForSandbox(pxe);
-    const wallets = await getSandboxAccountsWallets(pxe);
-
-    const walletClient = createWalletClient({
-      account: hdAccount,
-      chain: foundry,
-      transport: http(ETHEREUM_HOST),
-    });
-
-    console.log("walletClient: ", walletClient)
-    const publicClient = createPublicClient({
-      chain: foundry,
-      transport: http(ETHEREUM_HOST),
-    });
-
-    console.log("pxe: ", pxe)
+    const { pxe, deployL1ContractsValues, wallets, logger: logger_, teardown: teardown_ } = await setup(2);
 
     crossChainTestHarness = await CrossChainTestHarness.new(
       pxe,
-      publicClient,
-      walletClient,
+      deployL1ContractsValues.publicClient,
+      deployL1ContractsValues.walletClient,
       wallets[0],
-      logger
+      logger_,
     );
 
     l2Token = crossChainTestHarness.l2Token;
@@ -81,17 +44,16 @@ describe("e2e_cross_chain_messaging", () => {
     outbox = crossChainTestHarness.outbox;
     user1Wallet = wallets[0];
     user2Wallet = wallets[1];
+    logger = logger_;
+    teardown = teardown_;
+    logger('Successfully deployed contracts and initialized portal');
+  }, 100_000);
 
-    console.log("l2Token: ", l2Token.address.toString())
-    console.log("l2Bridge: ", l2Bridge.address.toString())
-    console.log("ethAccount: ", ethAccount.toString())
-    console.log("ownerAddress: ", ownerAddress.toString())
-
-    logger = logger;
-    logger("Successfully deployed contracts and initialized portal");
+  afterEach(async () => {
+    await teardown();
   });
-
-  it("Privately deposit funds from L1 -> L2 and withdraw back to L1", async () => {
+  // docs:start:e2e_private_cross_chain
+  it('Privately deposit funds from L1 -> L2 and withdraw back to L1', async () => {
     // Generate a claim secret using pedersen
     const l1TokenBalance = 1000000n;
     const bridgeAmount = 100n;
@@ -101,9 +63,6 @@ describe("e2e_cross_chain_messaging", () => {
     const [secretForRedeemingMintedNotes, secretHashForRedeemingMintedNotes] =
       await crossChainTestHarness.generateClaimSecret();
 
-      // console.log("secretForL2MessageConsumption: ", secretForL2MessageConsumption)
-      // console.log("secretForRedeemingMintedNotes: ", secretForRedeemingMintedNotes)
-
     // 1. Mint tokens on L1
     await crossChainTestHarness.mintTokensOnL1(l1TokenBalance);
 
@@ -111,188 +70,169 @@ describe("e2e_cross_chain_messaging", () => {
     const messageKey = await crossChainTestHarness.sendTokensToPortalPrivate(
       secretHashForRedeemingMintedNotes,
       bridgeAmount,
-      secretHashForL2MessageConsumption
+      secretHashForL2MessageConsumption,
     );
-
-    console.log("messageKey: ", messageKey)
-    expect(await crossChainTestHarness.getL1BalanceOf(ethAccount)).toBe(
-      l1TokenBalance - bridgeAmount
-    );
+    expect(await crossChainTestHarness.getL1BalanceOf(ethAccount)).toBe(l1TokenBalance - bridgeAmount);
 
     // Wait for the archiver to process the message
     await delay(5000); /// waiting 5 seconds.
 
-    console.log("1")
-
     // Perform an unrelated transaction on L2 to progress the rollup. Here we mint public tokens.
     const unrelatedMintAmount = 99n;
     await crossChainTestHarness.mintTokensPublicOnL2(unrelatedMintAmount);
-
-    console.log("2")
-
-    await crossChainTestHarness.expectPublicBalanceOnL2(
-      ownerAddress,
-      unrelatedMintAmount
-    );
-
-    console.log("3")
-
-    console.log("secretHashForRedeemingMintedNotes: ", secretHashForRedeemingMintedNotes.toString())
-    console.log("bridgeAmount: ", bridgeAmount.toString())
-    console.log("messageKey: ", messageKey.toString())
-    console.log("secretForL2MessageConsumption: ", secretForL2MessageConsumption.toString())
+    await crossChainTestHarness.expectPublicBalanceOnL2(ownerAddress, unrelatedMintAmount);
 
     // 3. Consume L1-> L2 message and mint private tokens on L2
     await crossChainTestHarness.consumeMessageOnAztecAndMintSecretly(
       secretHashForRedeemingMintedNotes,
       bridgeAmount,
       messageKey,
-      secretForL2MessageConsumption
+      secretForL2MessageConsumption,
     );
-
-    await delay(5000);
-
-    console.log("4")
-
     // tokens were minted privately in a TransparentNote which the owner (person who knows the secret) must redeem:
-    await crossChainTestHarness.redeemShieldPrivatelyOnL2(
-      bridgeAmount,
-      secretForRedeemingMintedNotes
-    );
-
-    console.log("5")
-
-    await crossChainTestHarness.expectPrivateBalanceOnL2(
-      ownerAddress,
-      bridgeAmount
-    );
-
-    console.log("6")
+    await crossChainTestHarness.redeemShieldPrivatelyOnL2(bridgeAmount, secretForRedeemingMintedNotes);
+    await crossChainTestHarness.expectPrivateBalanceOnL2(ownerAddress, bridgeAmount);
 
     // time to withdraw the funds again!
-    logger("Withdrawing funds from L2");
+    logger('Withdrawing funds from L2');
 
     // 4. Give approval to bridge to burn owner's funds:
     const withdrawAmount = 9n;
     const nonce = Fr.random();
     const burnMessageHash = await computeAuthWitMessageHash(
       l2Bridge.address,
-      l2Token.methods.burn(ownerAddress, withdrawAmount, nonce).request()
+      l2Token.methods.burn(ownerAddress, withdrawAmount, nonce).request(),
     );
-
-    console.log("nonce: ", nonce)
-
     await user1Wallet.createAuthWitness(burnMessageHash);
 
     // 5. Withdraw owner's funds from L2 to L1
-    const entryKey = await crossChainTestHarness.checkEntryIsNotInOutbox(
-      withdrawAmount
-    );
-    await crossChainTestHarness.withdrawPrivateFromAztecToL1(
-      withdrawAmount,
-      nonce
-    );
-    await crossChainTestHarness.expectPrivateBalanceOnL2(
-      ownerAddress,
-      bridgeAmount - withdrawAmount
-    );
+    const entryKey = await crossChainTestHarness.checkEntryIsNotInOutbox(withdrawAmount);
+    await crossChainTestHarness.withdrawPrivateFromAztecToL1(withdrawAmount, nonce);
+    await crossChainTestHarness.expectPrivateBalanceOnL2(ownerAddress, bridgeAmount - withdrawAmount);
 
     // Check balance before and after exit.
-    expect(await crossChainTestHarness.getL1BalanceOf(ethAccount)).toBe(
-      l1TokenBalance - bridgeAmount
-    );
-    await crossChainTestHarness.withdrawFundsFromBridgeOnL1(
-      withdrawAmount,
-      entryKey
-    );
-    expect(await crossChainTestHarness.getL1BalanceOf(ethAccount)).toBe(
-      l1TokenBalance - bridgeAmount + withdrawAmount
-    );
+    expect(await crossChainTestHarness.getL1BalanceOf(ethAccount)).toBe(l1TokenBalance - bridgeAmount);
+    await crossChainTestHarness.withdrawFundsFromBridgeOnL1(withdrawAmount, entryKey);
+    expect(await crossChainTestHarness.getL1BalanceOf(ethAccount)).toBe(l1TokenBalance - bridgeAmount + withdrawAmount);
 
     expect(await outbox.read.contains([entryKey.toString(true)])).toBeFalsy();
-  }, 200_000);
+  }, 120_000);
+  // docs:end:e2e_private_cross_chain
 
-  // it("Publicly deposit funds from L1 -> L2 and withdraw back to L1", async () => {
-  //   // Generate a claim secret using pedersen
-  //   const l1TokenBalance = 1000000n;
-  //   const bridgeAmount = 100n;
+  // Unit tests for TokenBridge's private methods.
+  it('Someone else can mint funds to me on my behalf (privately)', async () => {
+    const l1TokenBalance = 1000000n;
+    const bridgeAmount = 100n;
+    const [secretForL2MessageConsumption, secretHashForL2MessageConsumption] =
+      await crossChainTestHarness.generateClaimSecret();
+    const [secretForRedeemingMintedNotes, secretHashForRedeemingMintedNotes] =
+      await crossChainTestHarness.generateClaimSecret();
 
-  //   const [secret, secretHash] =
-  //     await crossChainTestHarness.generateClaimSecret();
+    await crossChainTestHarness.mintTokensOnL1(l1TokenBalance);
+    const messageKey = await crossChainTestHarness.sendTokensToPortalPrivate(
+      secretHashForRedeemingMintedNotes,
+      bridgeAmount,
+      secretHashForL2MessageConsumption,
+    );
+    expect(await crossChainTestHarness.getL1BalanceOf(ethAccount)).toBe(l1TokenBalance - bridgeAmount);
 
-  //   // 1. Mint tokens on L1
-  //   await crossChainTestHarness.mintTokensOnL1(l1TokenBalance);
+    // Wait for the archiver to process the message
+    await delay(5000); /// waiting 5 seconds.
 
-  //   // 2. Deposit tokens to the TokenPortal
-  //   const messageKey = await crossChainTestHarness.sendTokensToPortalPublic(
-  //     bridgeAmount,
-  //     secretHash
-  //   );
-  //   expect(await crossChainTestHarness.getL1BalanceOf(ethAccount)).toBe(
-  //     l1TokenBalance - bridgeAmount
-  //   );
+    // Perform an unrelated transaction on L2 to progress the rollup. Here we mint public tokens.
+    const unrelatedMintAmount = 99n;
+    await crossChainTestHarness.mintTokensPublicOnL2(unrelatedMintAmount);
+    await crossChainTestHarness.expectPublicBalanceOnL2(ownerAddress, unrelatedMintAmount);
 
-  //   // Wait for the archiver to process the message
-  //   await delay(5000); /// waiting 5 seconds.
+    // 3. Consume L1-> L2 message and mint private tokens on L2
 
-  //   // Perform an unrelated transaction on L2 to progress the rollup. Here we mint public tokens.
-  //   const unrelatedMintAmount = 99n;
-  //   await crossChainTestHarness.mintTokensPublicOnL2(unrelatedMintAmount);
-  //   await crossChainTestHarness.expectPublicBalanceOnL2(
-  //     ownerAddress,
-  //     unrelatedMintAmount
-  //   );
-  //   const balanceBefore = unrelatedMintAmount;
+    // Sending wrong secret hashes should fail:
+    await expect(
+      l2Bridge
+        .withWallet(user2Wallet)
+        .methods.claim_private(
+          secretHashForL2MessageConsumption,
+          bridgeAmount,
+          ethAccount,
+          messageKey,
+          secretForL2MessageConsumption,
+        )
+        .simulate(),
+    ).rejects.toThrowError("Cannot satisfy constraint 'l1_to_l2_message_data.message.content == content");
 
-  //   // 3. Consume L1-> L2 message and mint public tokens on L2
-  //   await crossChainTestHarness.consumeMessageOnAztecAndMintPublicly(
-  //     bridgeAmount,
-  //     messageKey,
-  //     secret
-  //   );
-  //   await crossChainTestHarness.expectPublicBalanceOnL2(
-  //     ownerAddress,
-  //     balanceBefore + bridgeAmount
-  //   );
-  //   const afterBalance = balanceBefore + bridgeAmount;
+    // send the right one -
+    const consumptionTx = l2Bridge
+      .withWallet(user2Wallet)
+      .methods.claim_private(
+        secretHashForRedeemingMintedNotes,
+        bridgeAmount,
+        ethAccount,
+        messageKey,
+        secretForL2MessageConsumption,
+      )
+      .send();
+    const consumptionReceipt = await consumptionTx.wait();
+    expect(consumptionReceipt.status).toBe(TxStatus.MINED);
 
-  //   // time to withdraw the funds again!
-  //   logger("Withdrawing funds from L2");
+    // Now user1 can claim the notes that user2 minted on their behalf.
+    await crossChainTestHarness.addPendingShieldNoteToPXE(
+      bridgeAmount,
+      secretHashForRedeemingMintedNotes,
+      consumptionReceipt.txHash,
+    );
+    await crossChainTestHarness.redeemShieldPrivatelyOnL2(bridgeAmount, secretForRedeemingMintedNotes);
+    await crossChainTestHarness.expectPrivateBalanceOnL2(ownerAddress, bridgeAmount);
+  }, 50_000);
 
-  //   // 4. Give approval to bridge to burn owner's funds:
-  //   const withdrawAmount = 9n;
-  //   const nonce = Fr.random();
-  //   const burnMessageHash = await computeAuthWitMessageHash(
-  //     l2Bridge.address,
-  //     l2Token.methods.burn_public(ownerAddress, withdrawAmount, nonce).request()
-  //   );
-  //   await user1Wallet.setPublicAuth(burnMessageHash, true).send().wait();
+  it("Bridge can't withdraw my funds if I don't give approval", async () => {
+    const mintAmountToUser1 = 100n;
+    await crossChainTestHarness.mintTokensPublicOnL2(mintAmountToUser1);
 
-  //   // 5. Withdraw owner's funds from L2 to L1
-  //   const entryKey = await crossChainTestHarness.checkEntryIsNotInOutbox(
-  //     withdrawAmount
-  //   );
-  //   await crossChainTestHarness.withdrawPublicFromAztecToL1(
-  //     withdrawAmount,
-  //     nonce
-  //   );
-  //   await crossChainTestHarness.expectPublicBalanceOnL2(
-  //     ownerAddress,
-  //     afterBalance - withdrawAmount
-  //   );
+    const withdrawAmount = 9n;
+    const nonce = Fr.random();
+    const expectedBurnMessageHash = await computeAuthWitMessageHash(
+      l2Bridge.address,
+      l2Token.methods.burn(user1Wallet.getAddress(), withdrawAmount, nonce).request(),
+    );
+    // Should fail as owner has not given approval to bridge burn their funds.
+    await expect(
+      l2Bridge
+        .withWallet(user1Wallet)
+        .methods.exit_to_l1_private(l2Token.address, ethAccount, withdrawAmount, EthAddress.ZERO, nonce)
+        .simulate(),
+    ).rejects.toThrowError(`Unknown auth witness for message hash 0x${expectedBurnMessageHash.toString('hex')}`);
+  }, 50_000);
 
-  //   // Check balance before and after exit.
-  //   expect(await crossChainTestHarness.getL1BalanceOf(ethAccount)).toBe(
-  //     l1TokenBalance - bridgeAmount
-  //   );
-  //   await crossChainTestHarness.withdrawFundsFromBridgeOnL1(
-  //     withdrawAmount,
-  //     entryKey
-  //   );
-  //   expect(await crossChainTestHarness.getL1BalanceOf(ethAccount)).toBe(
-  //     l1TokenBalance - bridgeAmount + withdrawAmount
-  //   );
+  it("Can't claim funds publicly if they were deposited privately", async () => {
+    // 1. Mint tokens on L1
+    const bridgeAmount = 100n;
+    await crossChainTestHarness.mintTokensOnL1(bridgeAmount);
 
-  //   expect(await outbox.read.contains([entryKey.toString(true)])).toBeFalsy();
-  // }, 120_000);
+    // 2. Deposit tokens to the TokenPortal privately
+    const [secretForL2MessageConsumption, secretHashForL2MessageConsumption] =
+      await crossChainTestHarness.generateClaimSecret();
+
+    const messageKey = await crossChainTestHarness.sendTokensToPortalPrivate(
+      Fr.random(),
+      bridgeAmount,
+      secretHashForL2MessageConsumption,
+    );
+    expect(await crossChainTestHarness.getL1BalanceOf(ethAccount)).toBe(0n);
+
+    // Wait for the archiver to process the message
+    await delay(5000); /// waiting 5 seconds.
+
+    // Perform an unrelated transaction on L2 to progress the rollup. Here we mint public tokens.
+    await crossChainTestHarness.mintTokensPublicOnL2(0n);
+
+    // 3. Consume L1-> L2 message and try to mint publicly on L2  - should fail
+    await expect(
+      l2Bridge
+        .withWallet(user2Wallet)
+        .methods.claim_public(ownerAddress, bridgeAmount, ethAccount, messageKey, secretForL2MessageConsumption)
+        .simulate(),
+    ).rejects.toThrowError(
+      "Failed to solve brillig function, reason: explicit trap hit in brillig 'l1_to_l2_message_data.message.content == content'",
+    );
+  }, 50_000);
 });
