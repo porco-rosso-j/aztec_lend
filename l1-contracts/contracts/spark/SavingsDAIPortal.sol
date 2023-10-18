@@ -23,8 +23,11 @@ import {IcUsdc} from "./interfaces/IcUsdc.sol";
 contract SavingsDaiPortal {
     ISavingsDai public constant sDAI =
         ISavingsDai(0x83F20F44975D03b1b09e64809B757c47f942BEeA);
+    address public constant DAI = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
+
     IcUsdc public constant cUSDC =
         IcUsdc(0x39AA39c021dfbaE8faC545936693aC917d5E7563);
+    address public constant USDC = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
 
     IRegistry public registry;
     bytes32 public l2StrategyAddress;
@@ -207,16 +210,31 @@ contract SavingsDaiPortal {
     }
 
     function _depositInternal(IERC20 inAsset, uint256 inAmount) private returns (uint256 outAmount) {
-        if (address(inAsset) == 0x6B175474E89094C44Da98b954EedeAC495271d0F) {
+        if (address(inAsset) == DAI) {
             inAsset.approve(address(sDAI), inAmount);
             outAmount = sDAI.deposit(inAmount, address(this));
-        } else if (address(inAsset) == 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48) {
+        } else if (address(inAsset) == USDC) {
             uint256 balanceBefore = cUSDC.balanceOf(address(this));
 
             inAsset.approve(address(cUSDC), inAmount);
             require(cUSDC.mint(inAmount) == 0);
 
             uint256 balanceAfter = cUSDC.balanceOf(address(this));
+            outAmount = balanceAfter - balanceBefore;
+        } else {
+            revert UnsupportedAsset(inAsset);
+        }
+    }
+
+    function _withdrawInternal(IERC20 inAsset, uint256 inAmount) private returns (uint256 outAmount) {
+        if (address(inAsset) == address(sDAI)) {
+            outAmount = sDAI.redeem(inAmount, address(this), address(this));
+        } else if (address(inAsset) == address(cUSDC)) {
+            uint256 balanceBefore = IERC20(USDC).balanceOf(address(this));
+
+            require(cUSDC.redeem(inAmount) == 0);
+
+            uint256 balanceAfter = IERC20(USDC).balanceOf(address(this));
             outAmount = balanceAfter - balanceBefore;
         } else {
             revert UnsupportedAsset(inAsset);
