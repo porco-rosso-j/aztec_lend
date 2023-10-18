@@ -116,7 +116,7 @@ contract SavingsDAI {
     }
 
     #[aztec(private)]
-    fn swap_private(
+    fn deposit_private(
         input_asset: AztecAddress, // since private, we pass here and later assert that this is as expected by input_bridge
         input_asset_bridge: AztecAddress, 
         input_amount: Field,
