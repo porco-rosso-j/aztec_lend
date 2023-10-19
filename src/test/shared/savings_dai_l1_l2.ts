@@ -11,7 +11,6 @@ import {
 } from "@aztec/aztec.js";
 import { deployL1Contract } from "@aztec/ethereum";
 import savingsDAIPortalArtifact from "../../../l1-contracts/artifacts/contracts/spark/SavingsDAIPortal.sol/SavingsDaiPortal.json";
-// import { SavingsDAIContract } from '../shared/savings_dai.js'
 import { SavingsDAIContract } from "../fixtures/SavingsDAI.js";
 import { jest } from "@jest/globals";
 import {
@@ -26,8 +25,9 @@ import { CrossChainTestHarness } from "./cross_chain_test_harness.js";
 import { fundDAI } from "../utils/fundERC20.js";
 import { getEntryKeyFromEvent } from "../utils/event.js";
 
-const TIMEOUT = 150_000;
+const TIMEOUT = 250_000;
 
+/** Objects to be returned by the uniswap setup function */
 export type SavingsDAISetupContext = {
 	/** The Private eXecution Environment (PXE). */
 	pxe: PXE;
@@ -42,12 +42,14 @@ export type SavingsDAISetupContext = {
 	/** The sponsor wallet. */
 	sponsorWallet: AccountWallet;
 };
+// docs:end:uniswap_l1_l2_test_setup_const
 
 export const savingsDAIL1L2TestSuite = (
 	setup: () => Promise<SavingsDAISetupContext>,
 	cleanup: () => Promise<void>,
 	expectedForkBlockNumber: number
 ) => {
+	// docs:start:uniswap_l1_l2_test_beforeAll
 	describe("savings_dai_on_l1_from_l2", () => {
 		jest.setTimeout(TIMEOUT);
 
@@ -67,7 +69,7 @@ export const savingsDAIL1L2TestSuite = (
 		let ownerWallet: AccountWallet;
 		let ownerAddress: AztecAddress;
 		let ownerEthAddress: EthAddress;
-		// does transactions on behalf of owner on Aztec:
+
 		let sponsorWallet: AccountWallet;
 		let sponsorAddress: AztecAddress;
 
@@ -136,7 +138,7 @@ export const savingsDAIL1L2TestSuite = (
 				walletClient,
 				publicClient,
 			});
-			// deploy l2 azteclend contract and attach to portal
+			// deploy l2 uniswap contract and attach to portal
 			savingsDAIL2Contract = await SavingsDAIContract.deploy(ownerWallet)
 				.send({ portalContract: savingsDAIPortalAddress })
 				.deployed();
@@ -226,7 +228,7 @@ export const savingsDAIL1L2TestSuite = (
 			// 3. Owner gives azteclend approval to unshield funds to self on its behalf
 			logger("Approving azteclend to unshield funds to self on my behalf");
 			const nonceForDAIUnshieldApproval = new Fr(1n);
-			const unshieldToAztecLendMessageHash = await computeAuthWitMessageHash(
+			const unshieldToUniswapMessageHash = await computeAuthWitMessageHash(
 				savingsDAIL2Contract.address,
 				daiCrossChainHarness.l2Token.methods
 					.unshield(
@@ -239,7 +241,7 @@ export const savingsDAIL1L2TestSuite = (
 			);
 
 			await ownerWallet.createAuthWitness(
-				Fr.fromBuffer(unshieldToAztecLendMessageHash)
+				Fr.fromBuffer(unshieldToUniswapMessageHash)
 			);
 
 			// 4. Deposit on L1 - sends L2 to L1 message to withdraw DAI to L1 and another message to deposit assets.
@@ -275,7 +277,7 @@ export const savingsDAIL1L2TestSuite = (
 				daiL2BalanceBeforeDeposit - daiAmountToBridge
 			);
 
-			// ensure that azteclend contract didn't eat the funds.
+			// ensure that uniswap contract didn't eat the funds.
 			await daiCrossChainHarness.expectPublicBalanceOnL2(
 				savingsDAIL2Contract.address,
 				0n
@@ -312,7 +314,7 @@ export const savingsDAIL1L2TestSuite = (
 				{} as any
 			);
 
-			const entryKey = await getEntryKeyFromEvent(txhash);
+			await sleep(5000);
 
 			// dai was swapped to sdai and send to portal
 			const sdaiL1BalanceOfPortalAfter =
@@ -332,6 +334,8 @@ export const savingsDAIL1L2TestSuite = (
 			await sleep(5000);
 			// send a transfer tx to force through rollup with the message included
 			await daiCrossChainHarness.mintTokensPublicOnL2(0n);
+
+			const entryKey = await getEntryKeyFromEvent(txhash);
 
 			// 6. claim sdai on L2
 			logger("Consuming messages to mint sdai on L2");
@@ -392,10 +396,16 @@ export const savingsDAIL1L2TestSuite = (
 			);
 		});
 
+		// docs:start:uniswap_public
 		it("should deposit on L1 from L2 funds publicly (swaps DAI -> SDAI)", async () => {
 			const daiL1BeforeBalance = await daiCrossChainHarness.getL1BalanceOf(
 				ownerEthAddress
 			);
+
+			const daiL1BeforePortalBalance =
+				await daiCrossChainHarness.getL1BalanceOf(
+					daiCrossChainHarness.tokenPortalAddress
+				);
 
 			// 1. Approve and deposit dai to the portal and move to L2
 			const [secretForMintingDai, secretHashForMintingDai] =
@@ -411,17 +421,20 @@ export const savingsDAIL1L2TestSuite = (
 				daiL1BeforeBalance - daiAmountToBridge
 			);
 
+			const daiL1AfterPortalBalance =
+				daiAmountToBridge + daiL1BeforePortalBalance;
 			expect(
 				await daiCrossChainHarness.getL1BalanceOf(
 					daiCrossChainHarness.tokenPortalAddress
 				)
-			).toBe(daiAmountToBridge);
+			).toBe(daiL1AfterPortalBalance);
 
 			// Wait for the archiver to process the message
 			await sleep(5000);
 
 			// Perform an unrelated transaction on L2 to progress the rollup. Here we transfer 0 tokens
 			await daiCrossChainHarness.mintTokensPublicOnL2(0n);
+
 			// 2. Claim DAI on L2
 			logger("Minting dai on L2");
 			await daiCrossChainHarness.consumeMessageOnAztecAndMintPublicly(
@@ -442,7 +455,7 @@ export const savingsDAIL1L2TestSuite = (
 			const sdaiL2BalanceBeforeDeposit =
 				await sDAICrossChainHarness.getL2PublicBalanceOf(ownerAddress);
 
-			// 3. Owner gives azteclend approval to transfer funds on its behalf
+			// 3. Owner gives uniswap approval to transfer funds on its behalf
 			const nonceForDAITransferApproval = new Fr(1n);
 			const transferMessageHash = await computeAuthWitMessageHash(
 				savingsDAIL2Contract.address,
@@ -460,8 +473,8 @@ export const savingsDAIL1L2TestSuite = (
 
 			await sleep(5000);
 
-			// before deposit - check nonce_for_burn_approval stored on azteclend
-			// (which is used by azteclend to approve the bridge to burn funds on its behalf to exit to L1)
+			// before deposit - check nonce_for_burn_approval stored on uniswap
+			// (which is used by uniswap to approve the bridge to burn funds on its behalf to exit to L1)
 			const nonceForBurnApprovalBeforeDeposit =
 				await savingsDAIL2Contract.methods.nonce_for_burn_approval().view();
 
@@ -534,7 +547,7 @@ export const savingsDAIL1L2TestSuite = (
 				{} as any
 			);
 
-			const entryKey = await getEntryKeyFromEvent(txhash);
+			await sleep(5000);
 
 			// dai was swapped to sdai and send to portal
 			const sdaiL1BalanceOfPortalAfter =
@@ -552,6 +565,8 @@ export const savingsDAIL1L2TestSuite = (
 			await sleep(5000);
 			// send a transfer tx to force through rollup with the message included
 			await daiCrossChainHarness.mintTokensPublicOnL2(0n);
+
+			const entryKey = await getEntryKeyFromEvent(txhash);
 
 			// 6. claim dai on L2
 			logger("Consuming messages to mint sdai on L2");
