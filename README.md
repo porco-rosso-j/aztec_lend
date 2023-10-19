@@ -8,7 +8,7 @@ git
 ## Setup
 
 ```shell
-anvil --fork-url <RPC_URL> --fork-block-number 18077352 --chain-id 31337
+anvil --fork-url <RPC_URL> --fork-block-number 18380756 --chain-id 31337
 ```
 
 ```shell

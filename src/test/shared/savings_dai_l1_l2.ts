@@ -159,10 +159,10 @@ export const savingsDAIL1L2TestSuite = (
 				savingsDAIL2Contract.address.toString()
 			);
 
-			const registryAddress = (await pxe.getNodeInfo()).l1ContractAddresses
-				.registryAddress;
+			const { registryAddress, outboxAddress } = (await pxe.getNodeInfo()).l1ContractAddresses;
 
-			console.log("registryAddress: ", registryAddress);
+			console.log("registryAddress: ", registryAddress.toString());
+			console.log("outboxAddress: ", outboxAddress.toString());
 
 			await savingsDAIPortal.write.initialize(
 				[registryAddress.toString(), savingsDAIL2Contract.address.toString()],
