@@ -22,12 +22,12 @@ import {
 	Hex,
 } from "viem";
 import { CrossChainTestHarness } from "./cross_chain_test_harness.js";
-import { fundDAI } from "../utils/fundERC20.js";
-import { getEntryKeyFromEvent } from "../utils/event.js";
+import { fundDAI } from "../helpers/fundERC20.js";
+import { getEntryKeyFromEvent } from "../helpers/event.js";
 
 const TIMEOUT = 250_000;
 
-/** Objects to be returned by the uniswap setup function */
+/** Objects to be returned by the azteclend setup function */
 export type SavingsDAISetupContext = {
 	/** The Private eXecution Environment (PXE). */
 	pxe: PXE;
@@ -42,14 +42,12 @@ export type SavingsDAISetupContext = {
 	/** The sponsor wallet. */
 	sponsorWallet: AccountWallet;
 };
-// docs:end:uniswap_l1_l2_test_setup_const
 
 export const savingsDAIL1L2TestSuite = (
 	setup: () => Promise<SavingsDAISetupContext>,
 	cleanup: () => Promise<void>,
 	expectedForkBlockNumber: number
 ) => {
-	// docs:start:uniswap_l1_l2_test_beforeAll
 	describe("savings_dai_on_l1_from_l2", () => {
 		jest.setTimeout(TIMEOUT);
 
@@ -80,7 +78,7 @@ export const savingsDAIL1L2TestSuite = (
 		let savingsDAIPortalAddress: EthAddress;
 		let savingsDAIL2Contract: SavingsDAIContract;
 
-		const daiAmountToBridge = parseEther("1");
+		const daiAmountToBridge = parseEther("1000");
 		const deadlineForSDAIDeposit = BigInt(2 ** 32 - 1); // max uint32
 
 		beforeAll(async () => {
@@ -138,7 +136,7 @@ export const savingsDAIL1L2TestSuite = (
 				walletClient,
 				publicClient,
 			});
-			// deploy l2 uniswap contract and attach to portal
+			// deploy l2 azteclend contract and attach to portal
 			savingsDAIL2Contract = await SavingsDAIContract.deploy(ownerWallet)
 				.send({ portalContract: savingsDAIPortalAddress })
 				.deployed();
@@ -228,7 +226,7 @@ export const savingsDAIL1L2TestSuite = (
 			// 3. Owner gives azteclend approval to unshield funds to self on its behalf
 			logger("Approving azteclend to unshield funds to self on my behalf");
 			const nonceForDAIUnshieldApproval = new Fr(1n);
-			const unshieldToUniswapMessageHash = await computeAuthWitMessageHash(
+			const unshieldToAztecLendMessageHash = await computeAuthWitMessageHash(
 				savingsDAIL2Contract.address,
 				daiCrossChainHarness.l2Token.methods
 					.unshield(
@@ -241,7 +239,7 @@ export const savingsDAIL1L2TestSuite = (
 			);
 
 			await ownerWallet.createAuthWitness(
-				Fr.fromBuffer(unshieldToUniswapMessageHash)
+				Fr.fromBuffer(unshieldToAztecLendMessageHash)
 			);
 
 			// 4. Deposit on L1 - sends L2 to L1 message to withdraw DAI to L1 and another message to deposit assets.
@@ -277,7 +275,7 @@ export const savingsDAIL1L2TestSuite = (
 				daiL2BalanceBeforeDeposit - daiAmountToBridge
 			);
 
-			// ensure that uniswap contract didn't eat the funds.
+			// ensure that azteclend contract didn't eat the funds.
 			await daiCrossChainHarness.expectPublicBalanceOnL2(
 				savingsDAIL2Contract.address,
 				0n
@@ -396,7 +394,6 @@ export const savingsDAIL1L2TestSuite = (
 			);
 		});
 
-		// docs:start:uniswap_public
 		it("should deposit on L1 from L2 funds publicly (swaps DAI -> SDAI)", async () => {
 			const daiL1BeforeBalance = await daiCrossChainHarness.getL1BalanceOf(
 				ownerEthAddress
@@ -455,7 +452,7 @@ export const savingsDAIL1L2TestSuite = (
 			const sdaiL2BalanceBeforeDeposit =
 				await sDAICrossChainHarness.getL2PublicBalanceOf(ownerAddress);
 
-			// 3. Owner gives uniswap approval to transfer funds on its behalf
+			// 3. Owner gives azteclend approval to transfer funds on its behalf
 			const nonceForDAITransferApproval = new Fr(1n);
 			const transferMessageHash = await computeAuthWitMessageHash(
 				savingsDAIL2Contract.address,
@@ -473,8 +470,8 @@ export const savingsDAIL1L2TestSuite = (
 
 			await sleep(5000);
 
-			// before deposit - check nonce_for_burn_approval stored on uniswap
-			// (which is used by uniswap to approve the bridge to burn funds on its behalf to exit to L1)
+			// before deposit - check nonce_for_burn_approval stored on azteclend
+			// (which is used by azteclend to approve the bridge to burn funds on its behalf to exit to L1)
 			const nonceForBurnApprovalBeforeDeposit =
 				await savingsDAIL2Contract.methods.nonce_for_burn_approval().view();
 

@@ -2,12 +2,17 @@
 
 ## Overview
 
-AztecLend allows for private lending operation to DeFi lending protocol, such as Spark and Compound from Aztec, private L2 zk-rollup. AztecLend contract on Aztec L2 acts like strategy vault that receives deposits, bridge the token, and have the Aztec contract on L1 execute a requested strategy. Subsequently, users can receive/redeem wrapped share tokens, such as sDAI, aWETH, and cUSDC, directly from Aztec bridge on L2.
-git
+AztecLend allows for private lending operation to DeFi lending protocol, such as Spark and Compound from Aztec, a private zk-rollup.
+
+AztecLend contract on Aztec L2 acts like a strategy vault that receives deposits, bridges the token, and has the AztecLend contract on L1 execute a requested strategy.
+
+Users can receive/redeem wrapped share tokens, such as sDAI, aWETH, and cUSDC, directly from Aztec bridge on L2 in a private(optional) manner.
 
 ## Setup
 
 node > 18
+
+nargo `v0.16.0-aztec.1`
 
 ```shell
 anvil --fork-url <RPC_URL> --fork-block-number 18380756 --chain-id 31337
@@ -29,5 +34,6 @@ aztec-cli compile ./ --typescript ../src/test/fixtures/
 ```
 
 ```shell
+cd src
 yarn test
 ```
