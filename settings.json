@@ -1,0 +1,10 @@
+{
+    "terminal.integrated.profiles.osx": {
+        "bash": {
+          "path": "arch",
+          "args": ["-arm64", "bash", "-l"],
+          "overrideName": true
+        }
+      },
+      "terminal.integrated.defaultProfile.osx": "bash"
+}

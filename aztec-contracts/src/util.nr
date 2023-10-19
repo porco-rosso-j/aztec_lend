@@ -29,7 +29,7 @@ pub fn compute_deposit_public_content_hash(
     // selector for depositPublic() == 0x076fcbc8
     hash_bytes[0] = 0x07;
     hash_bytes[1] = 0x6f;
-    hash_bytes[2] = 0xbc;
+    hash_bytes[2] = 0xcb;
     hash_bytes[3] = 0xc8;
 
 

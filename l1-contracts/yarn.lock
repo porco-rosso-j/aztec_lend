@@ -2,10 +2,10 @@
 # yarn lockfile v1
 
 
-"@aztec/l1-contracts@^0.8.14":
-  version "0.8.14"
-  resolved "https://registry.yarnpkg.com/@aztec/l1-contracts/-/l1-contracts-0.8.14.tgz#047fa0b35da8e34c37fed2ad6b75ada3c70a1cb0"
-  integrity sha512-m4X8jrK+3tKtOwo8LA7/MmHuIy9hKER00OH++Zq1Ul2ytPNyVtuO9/fbP4OrLmUA5uLxTWhUmO2KS7gIw67fOg==
+"@aztec/l1-contracts@0.9.0":
+  version "0.9.0"
+  resolved "https://registry.yarnpkg.com/@aztec/l1-contracts/-/l1-contracts-0.9.0.tgz#26d30e43d87d567aaa030198f89b836c8f2523f9"
+  integrity sha512-SCMvnVHDtIsWsN/vl4CmzeLp/hkJ/Z3QB4P/xycHCkE/ec4l2Y/khHk/6wBgtdbWEBi2wPezsnBc5uPcqtvkOw==
 
 "@chainsafe/as-sha256@^0.3.1":
   version "0.3.1"
@@ -732,10 +732,10 @@
     table "^6.8.0"
     undici "^5.14.0"
 
-"@openzeppelin/contracts@^5.0.0":
-  version "5.0.0"
-  resolved "https://registry.yarnpkg.com/@openzeppelin/contracts/-/contracts-5.0.0.tgz#ee0e4b4564f101a5c4ee398cd4d73c0bd92b289c"
-  integrity sha512-bv2sdS6LKqVVMLI5+zqnNrNU/CA+6z6CmwFXm/MzmOPBRSO5reEJN7z0Gbzvs0/bv/MZZXNklubpwy3v2+azsw==
+"@openzeppelin/contracts@4.9.2":
+  version "4.9.2"
+  resolved "https://registry.yarnpkg.com/@openzeppelin/contracts/-/contracts-4.9.2.tgz#1cb2d5e4d3360141a17dbc45094a8cad6aac16c1"
+  integrity sha512-mO+y6JaqXjWeMh9glYVzVu8HYPGknAAnWyxTRhGeckOruyXQMNnlcW6w/Dx9ftLeIQk6N+ZJFuVmTwF7lEIFrg==
 
 "@scure/base@~1.1.0":
   version "1.1.3"

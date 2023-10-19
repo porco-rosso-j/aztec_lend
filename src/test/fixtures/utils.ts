@@ -46,7 +46,7 @@ import { mnemonicToAccount } from 'viem/accounts';
 import { MNEMONIC, localAnvil } from './fixtures.js';
 import { isMetricsLoggingRequested, setupMetricsLogger } from './logging.js';
 
-export { deployAndInitializeTokenAndBridgeContracts } from './cross_chain_test_harness.js';
+export { deployAndInitializeTokenAndBridgeContracts } from '../shared/cross_chain_test_harness.js';
 
 const { PXE_URL = '', AZTEC_NODE_URL = '' } = process.env;
 
@@ -237,7 +237,7 @@ export type EndToEndContext = {
  * @param numberOfAccounts - The number of new accounts to be created once the PXE is initiated.
  * @param opts - Options to pass to the node initialization and to the setup script.
  */
-export async function setup(numberOfAccounts = 1, opts: SetupOptions = {}): Promise<EndToEndContext> {
+export async function setup(numberOfAccounts:number, opts: SetupOptions = {}): Promise<EndToEndContext> {
   const config = { ...getConfigEnvVars(), ...opts };
 
   // Enable logging metrics to a local file named after the test suite

@@ -83,7 +83,7 @@ contract SavingsDaiPortal {
                     _inputTokenPortal,
                     _inAmount,
                     _outputTokenPortal,
-                    _aztecRecipient,
+                    _aztecRecipient,git 
                     _secretHashForL1ToL2Message,
                     _deadlineForL1ToL2Message,
                     _canceller,
@@ -108,6 +108,7 @@ contract SavingsDaiPortal {
         // approve the output token portal to take funds from this contract
         // Note, safeApprove was deprecated from Oz
         vars.outputAsset.approve(address(_outputTokenPortal), amountOut);
+        //sDAI.approve(address(_outputTokenPortal), amountOut);
 
         // Deposit the output asset to the L2 via its portal
         return
