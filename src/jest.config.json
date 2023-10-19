@@ -8,6 +8,6 @@
   "moduleNameMapper": {
     "^(\\.{1,2}/.*)\\.js$": "$1"
   },
-  "testRegex": "./test/.*\\.test\\.ts$",
+  "testRegex": "./src/.*\\.test\\.(ts|mjs)$",
   "rootDir": "./test"
 }

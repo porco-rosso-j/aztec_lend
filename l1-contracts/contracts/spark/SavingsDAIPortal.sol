@@ -88,7 +88,7 @@ contract SavingsDaiPortal {
             // prevent stack too deep errors
             vars.contentHash = Hash.sha256ToField(
                 abi.encodeWithSignature(
-                    "deposit_public(address,uint256,address,bytes32,bytes32,uint32,address,address)",
+                    "depositPublic(address,uint256,address,bytes32,bytes32,uint32,address,bool)",
                     _inputTokenPortal,
                     _inAmount,
                     _outputTokenPortal,
@@ -100,6 +100,7 @@ contract SavingsDaiPortal {
                 )
             );
         }
+
 
         // Consume the message from the outbox
         registry.getOutbox().consume(
@@ -115,6 +116,7 @@ contract SavingsDaiPortal {
         // approve the output token portal to take funds from this contract
         // Note, safeApprove was deprecated from Oz
         vars.outputAsset.approve(address(_outputTokenPortal), amountOut);
+        //sDAI.approve(address(_outputTokenPortal), amountOut);
 
         // Deposit the output asset to the L2 via its portal
         return
@@ -168,7 +170,7 @@ contract SavingsDaiPortal {
             // prevent stack too deep errors
             vars.contentHash = Hash.sha256ToField(
                 abi.encodeWithSignature(
-                    "deposit_private(address,uint256,address,bytes32,bytes32,uint32,address,address)",
+                    "depositPrivate(address,uint256,address,bytes32,bytes32,uint32,address,bool)",
                     _inputTokenPortal,
                     _inAmount,
                     _outputTokenPortal,
