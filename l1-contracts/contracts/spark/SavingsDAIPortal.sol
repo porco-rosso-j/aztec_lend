@@ -9,6 +9,7 @@ import {Hash} from "@aztec/l1-contracts/src/core/libraries/Hash.sol";
 // docs:start:setup
 import {TokenPortal} from "../TokenPortal.sol";
 import {ISavingsDai} from "./interfaces/ISavingsDai.sol";
+import "hardhat/console.sol";
 
 /**
  * @title UniswapPortal
@@ -72,7 +73,7 @@ contract SavingsDaiPortal {
 
         vars.inputAsset = TokenPortal(_inputTokenPortal).underlying();
         vars.outputAsset = TokenPortal(_outputTokenPortal).underlying();
-
+        console.log("withdrawing from bridge");
         // Withdraw the input asset from the portal
         TokenPortal(_inputTokenPortal).withdraw(address(this), _inAmount, true);
         {
@@ -83,7 +84,7 @@ contract SavingsDaiPortal {
                     _inputTokenPortal,
                     _inAmount,
                     _outputTokenPortal,
-                    _aztecRecipient,git 
+                    _aztecRecipient,
                     _secretHashForL1ToL2Message,
                     _deadlineForL1ToL2Message,
                     _canceller,
@@ -92,6 +93,7 @@ contract SavingsDaiPortal {
             );
         }
 
+        console.log("withdrew from bridge");
         // Consume the message from the outbox
         registry.getOutbox().consume(
             DataStructures.L2ToL1Msg({
@@ -100,11 +102,13 @@ contract SavingsDaiPortal {
                 content: vars.contentHash
             })
         );
+        console.log("consumed from outbox");
 
         // Note, safeApprove was deprecated from Oz
         vars.inputAsset.approve(address(sDAI), _inAmount);
         uint256 amountOut = sDAI.deposit(_inAmount, address(this));
 
+        console.log("deposited");
         // approve the output token portal to take funds from this contract
         // Note, safeApprove was deprecated from Oz
         vars.outputAsset.approve(address(_outputTokenPortal), amountOut);
