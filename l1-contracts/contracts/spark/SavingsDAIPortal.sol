@@ -163,7 +163,7 @@ contract SavingsDaiPortal {
             // prevent stack too deep errors
             vars.contentHash = Hash.sha256ToField(
                 abi.encodeWithSignature(
-                    "deposit_private(address,uint256,address,bytes32,bytes32,uint32,address,address)",
+                    "depositPrivate(address,uint256,address,bytes32,bytes32,uint32,address,bool)",
                     _inputTokenPortal,
                     _inAmount,
                     _outputTokenPortal,
