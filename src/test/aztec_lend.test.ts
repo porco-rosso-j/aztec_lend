@@ -1,14 +1,14 @@
 import { setup as e2eSetup } from "./fixtures/utils.js";
 import {
-	SavingsDAISetupContext,
-	savingsDAIL1L2TestSuite,
-} from "./shared/savings_dai_l1_l2.js";
+	AztecLendSetupContext,
+	aztecLendL1L2TestSuite,
+} from "./shared/aztec_lend_l1_l2.js";
 
 const EXPECTED_FORKED_BLOCK = 18380756; //17514288;
 
 let teardown: () => Promise<void>;
 
-const testSetup = async (): Promise<SavingsDAISetupContext> => {
+const testSetup = async (): Promise<AztecLendSetupContext> => {
 	const {
 		teardown: teardown_,
 		pxe,
@@ -39,4 +39,4 @@ const testCleanup = async () => {
 	await teardown();
 };
 
-savingsDAIL1L2TestSuite(testSetup, testCleanup, EXPECTED_FORKED_BLOCK);
+aztecLendL1L2TestSuite(testSetup, testCleanup, EXPECTED_FORKED_BLOCK);

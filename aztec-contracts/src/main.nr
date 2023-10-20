@@ -4,7 +4,7 @@ mod util;
 // Demonstrates how to use portal contracts to swap on L1 Uniswap with funds on L2
 // Has two separate flows for private and public respectively
 // Uses the token bridge contract, which tells which input token we need to talk to and handles the exit funds to L1 
-contract SavingsDAI {
+contract AztecLend {
 
     use dep::aztec::{
         context::{PrivateContext, PublicContext, Context},

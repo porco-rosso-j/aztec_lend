@@ -12,8 +12,8 @@ describe("Test", function () {
 
       // const signer = await ethers.getSigner(from);
 
-      // let daiSavingsInterface = new ethers.utils.Interface(['function depositPublic(address,uint256,address,bytes32,bytes32,uint32,address,bool)'])
-      // const data = daiSavingsInterface.encodeFunctionData('depositPublic', 
+      // let aztecLendInterface = new ethers.utils.Interface(['function depositPublic(address,uint256,address,bytes32,bytes32,uint32,address,bool)'])
+      // const data = aztecLendInterface.encodeFunctionData('depositPublic', 
       // [
       //   "0x5fe2f174fe51474cd198939c96e7db65983ea307",
       //   BigNumber.from("1000000000000000000000"),
