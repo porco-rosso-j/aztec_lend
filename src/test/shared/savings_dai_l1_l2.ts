@@ -81,6 +81,9 @@ export const savingsDAIL1L2TestSuite = (
 		const daiAmountToBridge = parseEther("1000");
 		const deadlineForSDAIDeposit = BigInt(2 ** 32 - 1); // max uint32
 
+		let registryAddress: EthAddress;
+		let inboxAddress: EthAddress;
+
 		beforeAll(async () => {
 			let publicClient: PublicClient<HttpTransport, Chain>;
 			({ pxe, logger, publicClient, walletClient, ownerWallet, sponsorWallet } =
@@ -141,8 +144,7 @@ export const savingsDAIL1L2TestSuite = (
 				.send({ portalContract: savingsDAIPortalAddress })
 				.deployed();
 
-			const registryAddress = (await pxe.getNodeInfo()).l1ContractAddresses
-				.registryAddress;
+			({ registryAddress, inboxAddress } = (await pxe.getNodeInfo()).l1ContractAddresses);
 
 			await savingsDAIPortal.write.initialize(
 				[registryAddress.toString(), savingsDAIL2Contract.address.toString()],
@@ -289,7 +291,7 @@ export const savingsDAIL1L2TestSuite = (
 			);
 
 			// 5. Consume L2 to L1 message by calling savingsDAIPortal.deposit_private()
-			logger("Execute withdraw and deposit on the savingsDAIPortal!");
+			logger("Execute withdraw and deposit on the savingsDAIPortal!" + daiAmountToBridge);
 			const sdaiL1BalanceOfPortalBeforeDeposit =
 				await sDAICrossChainHarness.getL1BalanceOf(
 					sDAICrossChainHarness.tokenPortalAddress
@@ -333,7 +335,7 @@ export const savingsDAIL1L2TestSuite = (
 			// send a transfer tx to force through rollup with the message included
 			await daiCrossChainHarness.mintTokensPublicOnL2(0n);
 
-			const entryKey = await getEntryKeyFromEvent(txhash);
+			const entryKey = await getEntryKeyFromEvent(txhash, inboxAddress.toString());
 
 			// 6. claim sdai on L2
 			logger("Consuming messages to mint sdai on L2");
@@ -563,7 +565,7 @@ export const savingsDAIL1L2TestSuite = (
 			// send a transfer tx to force through rollup with the message included
 			await daiCrossChainHarness.mintTokensPublicOnL2(0n);
 
-			const entryKey = await getEntryKeyFromEvent(txhash);
+			const entryKey = await getEntryKeyFromEvent(txhash, inboxAddress.toString());
 
 			// 6. claim dai on L2
 			logger("Consuming messages to mint sdai on L2");
