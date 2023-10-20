@@ -10,7 +10,7 @@ import {
 	sleep,
 } from "@aztec/aztec.js";
 import { deployL1Contract } from "@aztec/ethereum";
-import savingsDAIPortalArtifact from "../../../l1-contracts/artifacts/contracts/spark/SavingsDAIPortal.sol/SavingsDaiPortal.json";
+import savingsDAIPortalArtifact from "../../../l1-contracts/artifacts/contracts/AztecLendPortal.sol/AztecLendPortal.json";
 import { SavingsDAIContract } from "../fixtures/SavingsDAI.js";
 import { jest } from "@jest/globals";
 import {
