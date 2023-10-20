@@ -1,8 +1,8 @@
 // TransferTabs.tsx
 
 import {
-    Select, Spinner, Card, CardBody, Box, Tabs, TabList, Tab, TabPanels, TabPanel,
-    Input, Flex, Button, StatNumber, Stat, StatLabel
+    Select, Spinner, Card, Box, Tabs, TabList, Tab, TabPanels, TabPanel,
+    Input, Flex, Button, Stat
   } from "@chakra-ui/react";
   import { useState, useEffect } from 'react'
   import { depositDAI, claimSDAI } from 'src/scripts/sdai';
@@ -94,23 +94,20 @@ import {
   
     return (
       <Box>
-        <Card mb="20px" p="16px" variant='darkCard'>
-          <Box mb={2} fontSize={20}>Balances</Box>
+        <Card mb="20px" p="15px" variant='darkCard'>
+          <Box mb={2} fontSize={18}>Account: aztec addr here </Box>
+          <Box mb={2} fontSize={18}>Balances:</Box>
           <Stat>
-            <StatLabel>DAI</StatLabel>
-            <StatNumber> {DAIBalance / 1e18}</StatNumber>
+             DAI: {DAIBalance / 1e18}
           </Stat>
           <Stat>
-            <StatLabel>SDAI</StatLabel>
-            <StatNumber> {SDAIBalance / 1e18}</StatNumber>
+            SDAI: {SDAIBalance / 1e18}
           </Stat>
           <Stat>
-            <StatLabel>USDC</StatLabel>
-            <StatNumber> {USDCBalance / 1e6}</StatNumber>
+            USDC: {USDCBalance / 1e6}
           </Stat>
           <Stat>
-            <StatLabel>CUSDC</StatLabel>
-            <StatNumber> {CUSDCBalance / 1e6}</StatNumber>
+           CUSDC: {CUSDCBalance / 1e6}
           </Stat>
         </Card>
         <Tabs variant="enclosed">
@@ -122,7 +119,7 @@ import {
             <TabPanel >
               <Box p={4} mb={4} borderRadius="md" boxShadow="md" pos="relative">
                 <Box mb={4}>
-                  <label>deposit token and protocol</label>
+                  <label>1. token</label>
                   <Select placeholder='Select Asset' onChange={(e) => setDepositToken(e.target.value)}>
                     <option value='USDC' selected> DAI to Savings DAI </option>
                     <option value='WETH'> USDC to Compound </option>
