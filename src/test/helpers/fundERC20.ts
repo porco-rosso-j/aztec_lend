@@ -5,8 +5,9 @@ import {
 	WalletClient,
 	getContract,
 	parseEther,
+	Address
 } from "viem";
-import dai from "./erc20.json" assert { type: "json" };
+import erc20 from "./erc20.json" assert { type: "json" };
 import { localAnvil, MNEMONIC } from "../fixtures/fixtures.js";
 import {
 	createTestClient,
@@ -15,7 +16,7 @@ import {
 	createPublicClient,
 } from "viem";
 
-export async function fundDAI(user: string) {
+export async function fundERC20(token: Address, user: string, amount: string) {
 	const config = { ...getConfigEnvVars(), ...{} };
 
 	const testClient: TestClient = createTestClient({
@@ -40,17 +41,17 @@ export async function fundDAI(user: string) {
 	});
 
 	if (
-		(await getBalance(walletClient, publicClient, user)) >
+		(await getBalance(walletClient, publicClient, token, user)) >
 		1000000000000000000000000n
 	) {
 		return;
 	}
 
-	await walletClient.writeContract({
-		address: "0x6B175474E89094C44Da98b954EedeAC495271d0F",
-		abi: dai.abi,
+	let hash = await walletClient.writeContract({
+		address: token,
+		abi: erc20.abi,
 		functionName: "transfer",
-		args: [user, parseEther("1000000")],
+		args: [user, parseEther(amount)],
 	});
 
 	await testClient.stopImpersonatingAccount({ address: whale });
@@ -59,11 +60,12 @@ export async function fundDAI(user: string) {
 export async function getBalance(
 	walletClient: WalletClient,
 	publicClient: PublicClient,
+	token: Address,
 	user: string
 ): Promise<bigint> {
 	const daiContract = getContract({
-		address: "0x6B175474E89094C44Da98b954EedeAC495271d0F",
-		abi: dai.abi,
+		address: token,
+		abi: erc20.abi,
 		walletClient,
 		publicClient,
 	});
@@ -74,9 +76,9 @@ export async function getBalance(
 }
 
 async function main() {
-	await fundDAI("0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266");
+	await fundERC20("0x6B175474E89094C44Da98b954EedeAC495271d0F", "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266", "1000000");
 	// const { deployL1ContractsValues } = await setup(2, {})
-	// await fundDAI(deployL1ContractsValues.walletClient, deployL1ContractsValues.publicClient)
+	// await fundERC20(deployL1ContractsValues.walletClient, deployL1ContractsValues.publicClient)
 }
 
 main();
