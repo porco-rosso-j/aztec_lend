@@ -4,7 +4,8 @@ import { localAnvil } from "../fixtures/fixtures.js";
 import inboxArtifact from "../../../l1-contracts/artifacts/@aztec/l1-contracts/src/core/interfaces/messagebridge/IInbox.sol/IInbox.json" assert { type: "json" };
 
 export async function getEntryKeyFromEvent(
-	hash: string
+	hash: string,
+	inboxAddress: string
 ): Promise<string | undefined> {
 	const config = { ...getConfigEnvVars(), ...{} };
 	const publicClient = createPublicClient({
@@ -20,8 +21,7 @@ export async function getEntryKeyFromEvent(
 	let entryKey: string | undefined;
 	for (i; i < transaction.logs.length; ) {
 		if (
-			transaction.logs[i].address ==
-			"0x3489745eff9525ccc3d8c648102fe2cf3485e228" // inbox addr
+			transaction.logs[i].address == inboxAddress
 		) {
 			const decodedTopics = decodeEventLog({
 				abi: inboxArtifact.abi,
