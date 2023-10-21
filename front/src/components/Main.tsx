@@ -15,7 +15,7 @@ import { depositUSDC, claimCUSDC } from 'src/scripts/compound';
 import { TOKEN_ADDRESSES, CONTRACT_ADDRESSES } from 'src/scripts/utils/constants';
 import { getBalances } from "src/scripts/utils/balance"
 import { shorterHash } from "src/scripts/utils/helpers"
-import { initialize } from "src/scripts/utils/setup";
+// import { initialize } from "src/scripts/utils/setup";
 
 const Main = () => {
   const [loading, setLoading] = useState(false);
@@ -50,27 +50,18 @@ const Main = () => {
     return () => clearTimeout(timeOutId);
   });
 
-  const onInit = async () => {
-    setLoading(true); 
-    if ("1" === "1") {
-      try {
-        await initialize()
-      } catch (err) {
-        console.log(err)
-      }
-      
-    }
-    setLoading(false);
-  }
-
   const onDeposit = async () => {
+    console.log("called?")
     setLoading(true);
+    console.log("then?")
     if (depositAmount === 0) {
       console.log("invalid amount")
       return;
     }
+    console.log("depositToken: ", depositToken)
     try {
       if (depositToken === 'DAI') {
+        console.log("go")
           await depositDAI(depositAmount)
       } else {
           await depositUSDC(depositAmount)
@@ -128,7 +119,6 @@ const Main = () => {
         <Stat>
          CUSDC: {CUSDCBalance / 1e6}
         </Stat>
-        <Button onClick={onInit} w="100%" mt="16px">init</Button>
       </Card>
       <Tabs variant="enclosed">
         <TabList>

@@ -20,20 +20,20 @@ import {
 	PublicKey,
 	Wallet,
 } from "@aztec/aztec.js";
-import SavingsDAIContractArtifactJson from "../../sources/SavingsDAI.json" assert { type: "json" };
-export const SavingsDAIContractArtifact =
-	SavingsDAIContractArtifactJson as ContractArtifact;
+import AztecLendContractArtifactJson from "../sources/AztecLend.json" assert { type: "json" };
+export const AztecLendContractArtifact =
+	AztecLendContractArtifactJson as ContractArtifact;
 
 /**
- * Type-safe interface for contract SavingsDAI;
+ * Type-safe interface for contract AztecLend;
  */
-export class SavingsDAIContract extends ContractBase {
+export class AztecLendContract extends ContractBase {
 	private constructor(
 		completeAddress: CompleteAddress,
 		wallet: Wallet,
 		portalContract = EthAddress.ZERO
 	) {
-		super(completeAddress, SavingsDAIContractArtifact, wallet, portalContract);
+		super(completeAddress, AztecLendContractArtifact, wallet, portalContract);
 	}
 
 	/**
@@ -45,19 +45,19 @@ export class SavingsDAIContract extends ContractBase {
 	public static async at(address: AztecAddress, wallet: Wallet) {
 		return Contract.at(
 			address,
-			SavingsDAIContract.artifact,
+			AztecLendContract.artifact,
 			wallet
-		) as Promise<SavingsDAIContract>;
+		) as Promise<AztecLendContract>;
 	}
 
 	/**
 	 * Creates a tx to deploy a new instance of this contract.
 	 */
 	public static deploy(pxe: PXE) {
-		return new DeployMethod<SavingsDAIContract>(
+		return new DeployMethod<AztecLendContract>(
 			Point.ZERO,
 			pxe,
-			SavingsDAIContractArtifact,
+			AztecLendContractArtifact,
 			Array.from(arguments).slice(1)
 		);
 	}
@@ -66,10 +66,10 @@ export class SavingsDAIContract extends ContractBase {
 	 * Creates a tx to deploy a new instance of this contract using the specified public key to derive the address.
 	 */
 	public static deployWithPublicKey(pxe: PXE, publicKey: PublicKey) {
-		return new DeployMethod<SavingsDAIContract>(
+		return new DeployMethod<AztecLendContract>(
 			publicKey,
 			pxe,
-			SavingsDAIContractArtifact,
+			AztecLendContractArtifact,
 			Array.from(arguments).slice(2)
 		);
 	}
@@ -78,7 +78,7 @@ export class SavingsDAIContract extends ContractBase {
 	 * Returns this contract's artifact.
 	 */
 	public static get artifact(): ContractArtifact {
-		return SavingsDAIContractArtifact;
+		return AztecLendContractArtifact;
 	}
 
 	/** Type-safe wrappers for the public methods exposed by the contract. */

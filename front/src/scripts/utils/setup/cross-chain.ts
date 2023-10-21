@@ -190,7 +190,7 @@ export class CrossChainTestHarness {
 
 		return new CrossChainTestHarness(
 			pxeService,
-			logger,
+			//logger,
 			token,
 			bridge,
 			ethAccount,
@@ -208,7 +208,7 @@ export class CrossChainTestHarness {
 		/** Private eXecution Environment (PXE). */
 		public pxeService: PXE,
 		/** Logger. */
-		public logger: DebugLogger,
+		// public logger: DebugLogger,
 
 		/** L2 Token contract. */
 		public l2Token: TokenContract,
@@ -236,15 +236,15 @@ export class CrossChainTestHarness {
 	) {}
 
 	async generateClaimSecret(): Promise<[Fr, Fr]> {
-		this.logger("Generating a claim secret using pedersen's hash function");
+		//this.logger("Generating a claim secret using pedersen's hash function");
 		const secret = Fr.random();
 		const secretHash = await computeMessageSecretHash(secret);
-		this.logger("Generated claim secret: " + secretHash.toString(true));
+		//	this.logger("Generated claim secret: " + secretHash.toString(true));
 		return [secret, secretHash];
 	}
 
 	async mintTokensOnL1(amount: bigint) {
-		this.logger("Minting tokens on L1");
+		//this.logger("Minting tokens on L1");
 		await this.underlyingERC20.write.mint(
 			[this.ethAccount.toString(), amount],
 			{} as any
@@ -267,7 +267,7 @@ export class CrossChainTestHarness {
 		// Deposit tokens to the TokenPortal
 		const deadline = 2 ** 32 - 1; // max uint32
 
-		this.logger("Sending messages to L1 portal to be consumed publicly");
+		//this.logger("Sending messages to L1 portal to be consumed publicly");
 		const args = [
 			this.ownerAddress.toString(),
 			bridgeAmount,
@@ -297,7 +297,7 @@ export class CrossChainTestHarness {
 		// Deposit tokens to the TokenPortal
 		const deadline = 2 ** 32 - 1; // max uint32
 
-		this.logger("Sending messages to L1 portal to be consumed privately");
+		//	this.logger("Sending messages to L1 portal to be consumed privately");
 		const args = [
 			secretHashForRedeemingMintedNotes.toString(true),
 			bridgeAmount,
@@ -315,7 +315,7 @@ export class CrossChainTestHarness {
 	}
 
 	async mintTokensPublicOnL2(amount: bigint) {
-		this.logger("Minting tokens on L2 publicly");
+		//	this.logger("Minting tokens on L2 publicly");
 		const tx = this.l2Token.methods
 			.mint_public(this.ownerAddress, amount)
 			.send();
@@ -348,7 +348,7 @@ export class CrossChainTestHarness {
 		messageKey: Fr,
 		secretForL2MessageConsumption: Fr
 	) {
-		this.logger("Consuming messages on L2 secretively");
+		//this.logger("Consuming messages on L2 secretively");
 		// Call the mint tokens function on the Aztec.nr contract
 		const consumptionTx = this.l2Bridge.methods
 			.claim_private(
@@ -374,7 +374,7 @@ export class CrossChainTestHarness {
 		messageKey: Fr,
 		secret: Fr
 	) {
-		this.logger("Consuming messages on L2 Publicly");
+		//this.logger("Consuming messages on L2 Publicly");
 		// Call the mint tokens function on the Aztec.nr contract
 		const tx = this.l2Bridge.methods
 			.claim_public(
@@ -430,7 +430,7 @@ export class CrossChainTestHarness {
 
 	async expectPrivateBalanceOnL2(owner: AztecAddress, expectedBalance: bigint) {
 		const balance = await this.getL2PrivateBalanceOf(owner);
-		this.logger(`Account ${owner} balance: ${balance}`);
+		//this.logger(`Account ${owner} balance: ${balance}`);
 		// expect(balance).toBe(expectedBalance);
 	}
 
@@ -477,7 +477,7 @@ export class CrossChainTestHarness {
 	// }
 
 	async withdrawFundsFromBridgeOnL1(withdrawAmount: bigint, entryKey: Fr) {
-		this.logger("Send L1 tx to consume entry and withdraw funds");
+		//this.logger("Send L1 tx to consume entry and withdraw funds");
 		// Call function on L1 contract to consume the message
 		const { request: withdrawRequest, result: withdrawEntryKey } =
 			await this.tokenPortal.simulate.withdraw([
@@ -494,7 +494,7 @@ export class CrossChainTestHarness {
 	}
 
 	async shieldFundsOnL2(shieldAmount: bigint, secretHash: Fr) {
-		this.logger("Shielding funds on L2");
+		//this.logger("Shielding funds on L2");
 		const shieldTx = this.l2Token.methods
 			.shield(this.ownerAddress, shieldAmount, secretHash, 0)
 			.send();
@@ -513,7 +513,7 @@ export class CrossChainTestHarness {
 		secretHash: Fr,
 		txHash: TxHash
 	) {
-		this.logger("Adding note to PXE");
+		//	this.logger("Adding note to PXE");
 		const storageSlot = new Fr(5);
 		const preimage = new NotePreimage([new Fr(shieldAmount), secretHash]);
 		await this.pxeService.addNote(
@@ -526,7 +526,7 @@ export class CrossChainTestHarness {
 	}
 
 	async redeemShieldPrivatelyOnL2(shieldAmount: bigint, secret: Fr) {
-		this.logger("Spending commitment in private call");
+		//this.logger("Spending commitment in private call");
 		const privateTx = this.l2Token.methods
 			.redeem_shield(this.ownerAddress, shieldAmount, secret)
 			.send();
@@ -535,7 +535,7 @@ export class CrossChainTestHarness {
 	}
 
 	async unshieldTokensOnL2(unshieldAmount: bigint, nonce = Fr.ZERO) {
-		this.logger("Unshielding tokens");
+		//	this.logger("Unshielding tokens");
 		const unshieldTx = this.l2Token.methods
 			.unshield(this.ownerAddress, this.ownerAddress, unshieldAmount, nonce)
 			.send();

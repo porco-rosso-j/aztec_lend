@@ -1,7 +1,7 @@
 import { http, createPublicClient, Hex, decodeEventLog } from "viem";
 // import { getConfigEnvVars } from "@aztec/aztec-node";
-import { localAnvil } from "../fixtures.js";
-import inboxArtifact from "../../../sources/IInbox.json" assert { type: "json" };
+import { localAnvil } from "./setup/fixtures.js";
+import inboxArtifact from "../sources/IInbox.json" assert { type: "json" };
 const RPC_URL = "http://localhost:8545";
 
 export async function getEntryKeyFromEvent(

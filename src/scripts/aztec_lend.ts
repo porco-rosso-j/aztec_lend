@@ -111,7 +111,28 @@ export async function aztecLendL1L2TestSuite(
 	);
 
 	console.log("dai l2 addr: ", daiCrossChainHarness.l2Token.address.toString());
-	console.log("complete addr: ", daiCrossChainHarness.l2Token.completeAddress);
+	console.log(
+		"token complete addr: ",
+		daiCrossChainHarness.l2Token.completeAddress
+	);
+
+	console.log(
+		"dai bridge addr: ",
+		daiCrossChainHarness.l2Bridge.address.toString()
+	);
+	console.log(
+		"bridge complete addr: ",
+		daiCrossChainHarness.l2Bridge.completeAddress
+	);
+
+	console.log(
+		"dai token portal addr: ",
+		daiCrossChainHarness.tokenPortal.address.toString()
+	);
+	console.log(
+		"dai token portal complete addr: ",
+		daiCrossChainHarness.tokenPortal.completeAddress
+	);
 
 	// logger("Deploying sDAI Portal, initializing and deploying l2 contract...");
 	sDAICrossChainHarness = await CrossChainTestHarness.new(
@@ -128,6 +149,25 @@ export async function aztecLendL1L2TestSuite(
 		sDAICrossChainHarness.l2Token.address.toString()
 	);
 	console.log("complete addr: ", sDAICrossChainHarness.l2Token.completeAddress);
+
+	console.log(
+		"sdai l2 addr: ",
+		sDAICrossChainHarness.l2Bridge.address.toString()
+	);
+	console.log(
+		"complete addr: ",
+		sDAICrossChainHarness.l2Bridge.completeAddress
+	);
+
+	console.log(
+		"sdai l2 addr: ",
+		sDAICrossChainHarness.tokenPortal.address.toString()
+	);
+	console.log(
+		"complete addr: ",
+		sDAICrossChainHarness.tokenPortal.completeAddress
+	);
+
 	//daiCrossChainHarness.getL2PublicBalanceOf;
 
 	// logger("Deploy SavingsDAI portal on L1 and L2...");
