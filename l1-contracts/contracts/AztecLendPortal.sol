@@ -172,6 +172,7 @@ contract AztecLendPortal {
             );
     }
 
+    // Deposit or withdraw depending on the asset provided
     function _depositInternal(
         IERC20 inAsset,
         uint256 inAmount
@@ -187,16 +188,7 @@ contract AztecLendPortal {
 
             uint256 balanceAfter = cUSDC.balanceOf(address(this));
             outAmount = balanceAfter - balanceBefore;
-        } else {
-            revert UnsupportedAsset(inAsset);
-        }
-    }
-
-    function _withdrawInternal(
-        IERC20 inAsset,
-        uint256 inAmount
-    ) private returns (uint256 outAmount) {
-        if (address(inAsset) == address(sDAI)) {
+        } else if (address(inAsset) == address(sDAI)) {
             outAmount = sDAI.redeem(inAmount, address(this), address(this));
         } else if (address(inAsset) == address(cUSDC)) {
             uint256 balanceBefore = IERC20(USDC).balanceOf(address(this));

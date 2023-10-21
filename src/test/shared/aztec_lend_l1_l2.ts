@@ -130,7 +130,8 @@ export const aztecLendL1L2TestSuite = (
 			let sDAICrossChainHarness: CrossChainTestHarness;
 
 			const daiAmountToBridge = parseEther("1000");
-			const deadlineForSDAIDeposit = BigInt(2 ** 32 - 1); // max uint32
+			const sdaiAmountToRedeem = parseEther("500");
+			const deadline = BigInt(2 ** 32 - 1); // max uint32
 
 			beforeAll(async () => {
 				logger("Deploying DAI Portal, initializing and deploying l2 contract...");
@@ -261,7 +262,7 @@ export const aztecLendL1L2TestSuite = (
 						nonceForDAIUnshieldApproval,
 						secretHashForRedeemingSDAI,
 						secretHashForSDAIDeposit,
-						deadlineForSDAIDeposit,
+						deadline,
 						ownerEthAddress,
 						ownerEthAddress
 					)
@@ -301,7 +302,7 @@ export const aztecLendL1L2TestSuite = (
 					sDAICrossChainHarness.tokenPortalAddress.toString(),
 					secretHashForRedeemingSDAI.toString(true),
 					secretHashForSDAIDeposit.toString(true),
-					deadlineForSDAIDeposit,
+					deadline,
 					ownerEthAddress.toString(),
 					true,
 				] as const;
@@ -491,7 +492,7 @@ export const aztecLendL1L2TestSuite = (
 						nonceForDAITransferApproval,
 						ownerAddress,
 						secretHashForSDAIDeposit,
-						deadlineForSDAIDeposit,
+						deadline,
 						ownerEthAddress,
 						ownerEthAddress,
 						nonceForDeposit
@@ -533,7 +534,7 @@ export const aztecLendL1L2TestSuite = (
 					sDAICrossChainHarness.tokenPortalAddress.toString(),
 					ownerAddress.toString(),
 					secretHashForSDAIDeposit.toString(true),
-					deadlineForSDAIDeposit,
+					deadline,
 					ownerEthAddress.toString(),
 					true,
 				] as const;
@@ -600,23 +601,368 @@ export const aztecLendL1L2TestSuite = (
 					"SDAI balance after deposit  : ",
 					sdaiL2BalanceAfterDeposit.toString()
 				);
+			});
+
+			it("should redeem funds from L2 privately", async () => {
+				const daiL1BalanceBeforeRedeem = 
+					await daiCrossChainHarness.getL1BalanceOf(ownerEthAddress);
+				const sdaiL1BalanceBeforeRedeem = 
+					await sDAICrossChainHarness.getL1BalanceOf(ownerEthAddress);
+	
+				const daiL2BalanceBeforeRedeem =
+					await daiCrossChainHarness.getL2PrivateBalanceOf(ownerAddress);	
+				const sdaiL2BalanceBeforeRedeem =
+					await sDAICrossChainHarness.getL2PrivateBalanceOf(ownerAddress);
+	
+				// before deposit - check nonce_for_burn_approval stored on azteclend
+				// (which is used by azteclend to approve the bridge to burn funds on its behalf to exit to L1)
+				const nonceForBurnApprovalBeforeRedeem =
+					await aztecLendL2Contract.methods.nonce_for_burn_approval().view();
+	
+				logger("Approving azteclend to unshield funds to self on my behalf");
+				const nonceForSDAIUnshieldApproval = new Fr(1n);
+				const unshieldToAztecLendMessageHash = await computeAuthWitMessageHash(
+					aztecLendL2Contract.address,
+					sDAICrossChainHarness.l2Token.methods
+						.unshield(
+							ownerAddress,
+							aztecLendL2Contract.address,
+							sdaiAmountToRedeem,
+							nonceForSDAIUnshieldApproval
+						)
+						.request()
+				);
+	
+				await ownerWallet.createAuthWitness(
+					Fr.fromBuffer(unshieldToAztecLendMessageHash)
+				);
+	
+				logger(
+					"Withdrawing sdai to L1 and sending message to redeem from sdai contract"
+				);
+				const [secretForDAIDeposit, secretHashForDAIDeposit] =
+					await daiCrossChainHarness.generateClaimSecret();
+	
+				const [secretForRedeemingDAI, secretHashForRedeemingDAI] =
+					await daiCrossChainHarness.generateClaimSecret();
+	
+				const withdrawReceipt = await aztecLendL2Contract.methods
+					.deposit_private(
+						sDAICrossChainHarness.l2Token.address,
+						sDAICrossChainHarness.l2Bridge.address,
+						sdaiAmountToRedeem,
+						daiCrossChainHarness.l2Bridge.address,
+						nonceForSDAIUnshieldApproval,
+						secretHashForRedeemingDAI,
+						secretHashForDAIDeposit,
+						deadline,
+						ownerEthAddress,
+						ownerEthAddress
+					)
+					.send()
+					.wait();
+				expect(withdrawReceipt.status).toBe(TxStatus.MINED);
+	
+				// ensure that user's funds were burnt
+				await sDAICrossChainHarness.expectPrivateBalanceOnL2(
+					ownerAddress,
+					sdaiL2BalanceBeforeRedeem - sdaiAmountToRedeem
+				);
+	
+				// ensure that azteclend contract didn't eat the funds.
+				await sDAICrossChainHarness.expectPublicBalanceOnL2(
+					aztecLendL2Contract.address,
+					0n
+				);
+	
+				// check burn approval nonce incremented:
+				const nonceForBurnApprovalAfterRedeem =
+					await aztecLendL2Contract.methods.nonce_for_burn_approval().view();
+				expect(nonceForBurnApprovalAfterRedeem).toBe(
+					nonceForBurnApprovalBeforeRedeem + 1n
+				);
+	
+				logger("Execute withdraw and deposit on the aztecLendPortal!" + sdaiAmountToRedeem);
+				const daiL1BalanceOfPortalBeforeRedeem =
+					await daiCrossChainHarness.getL1BalanceOf(
+						daiCrossChainHarness.tokenPortalAddress
+					);
+	
+				const depositArgs = [
+					sDAICrossChainHarness.tokenPortalAddress.toString(),
+					sdaiAmountToRedeem,
+					daiCrossChainHarness.tokenPortalAddress.toString(),
+					secretHashForRedeemingDAI.toString(true),
+					secretHashForDAIDeposit.toString(true),
+					deadline,
+					ownerEthAddress.toString(),
+					true,
+				] as const;
+	
+				// this should also insert a message into the inbox.
+				const txhash = await aztecLendPortal.write.depositPrivate(
+					depositArgs,
+					{} as any
+				);
+	
+				await sleep(5000);
+	
+				// dai was redeemed for sdai and sent to portal
+				const daiL1BalanceOfPortalAfterRedeem =
+					await daiCrossChainHarness.getL1BalanceOf(
+						daiCrossChainHarness.tokenPortalAddress
+					);
+	
+				expect(daiL1BalanceOfPortalAfterRedeem).toBeGreaterThan(
+					daiL1BalanceOfPortalBeforeRedeem
+				);
+	
+				const daiAmountToReturn = BigInt(
+					daiL1BalanceOfPortalAfterRedeem - daiL1BalanceOfPortalBeforeRedeem
+				);
+	
+				// Wait for the archiver to process the message
+				await sleep(5000);
+				// send a transfer tx to force through rollup with the message included
+				await daiCrossChainHarness.mintTokensPublicOnL2(0n);
+	
+				const entryKey = await getEntryKeyFromEvent(txhash, inboxAddress.toString());
+	
+				// 6. claim sdai on L2
+				logger("Consuming messages to mint dai on L2");
+				await daiCrossChainHarness.consumeMessageOnAztecAndMintSecretly(
+					secretHashForRedeemingDAI,
+					daiAmountToReturn,
+					Fr.fromString(entryKey as string),
+					secretForDAIDeposit
+				);
+	
+				await daiCrossChainHarness.redeemShieldPrivatelyOnL2(
+					daiAmountToReturn,
+					secretForRedeemingDAI
+				);
+	
+				await daiCrossChainHarness.expectPrivateBalanceOnL2(
+					ownerAddress,
+					daiL2BalanceBeforeRedeem + daiAmountToReturn
+				);
+	
+				const daiL2BalanceAfterRedeem =
+					await daiCrossChainHarness.getL2PrivateBalanceOf(ownerAddress);
+				const sdaiL2BalanceAfterRedeem =
+					await sDAICrossChainHarness.getL2PrivateBalanceOf(ownerAddress);
+	
+				logger(
+					"DAI balance before redeem: " + daiL2BalanceBeforeRedeem.toString()
+				);
+				logger(
+					"SDAI balance before redeem  : " +
+						sdaiL2BalanceBeforeRedeem.toString()
+				);
+				logger("***** 🧚‍♀️ Redeem DAI from SDAI on L2 🧚‍♀️ *****");
+				logger(
+					"DAI balance after redeem : ",
+					daiL2BalanceAfterRedeem.toString()
+				);
+				logger(
+					"SDAI balance after redeem  : ",
+					sdaiL2BalanceAfterRedeem.toString()
+				);
 	
 				console.log(
-					"DAI balance before deposit: ",
-					daiL2BalanceBeforeDeposit.toString()
+					"DAI balance before redeem: " + daiL2BalanceBeforeRedeem.toString()
 				);
 				console.log(
-					"SDAI balance before deposit  : ",
-					sdaiL2BalanceBeforeDeposit.toString()
+					"SDAI balance before redeem  : " +
+						sdaiL2BalanceBeforeRedeem.toString()
 				);
-				console.log("***** 🧚‍♀️ Deposit L2 assets on L1 Aztec Lend 🧚‍♀️ *****");
+				console.log("***** 🧚‍♀️ Redeem L2 assets on L1 Aztec Lend 🧚‍♀️ *****");
 				console.log(
-					"DAI balance after deposit : ",
-					daiL2BalanceAfterDeposit.toString()
+					"DAI balance after redeem : ",
+					daiL2BalanceAfterRedeem.toString()
 				);
 				console.log(
-					"SDAI balance after deposit  : ",
-					sdaiL2BalanceAfterDeposit.toString()
+					"SDAI balance after redeem  : ",
+					sdaiL2BalanceAfterRedeem.toString()
+				);
+			});
+
+			it("should redeem funds from L2 publicly", async () => {
+				const daiL1BalanceBeforeRedeem = 
+					await daiCrossChainHarness.getL1BalanceOf(ownerEthAddress);
+				const sdaiL1BalanceBeforeRedeem = 
+					await sDAICrossChainHarness.getL1BalanceOf(ownerEthAddress);
+				const daiL2BalanceBeforeRedeem =
+					await daiCrossChainHarness.getL2PublicBalanceOf(ownerAddress);
+				const sdaiL2BalanceBeforeRedeem =
+					await sDAICrossChainHarness.getL2PublicBalanceOf(ownerAddress);
+	
+				logger("Approving azteclend to unshield funds to self on my behalf");
+				const nonceForDAITransferApproval = new Fr(1n);
+				const transferMessageHash = await computeAuthWitMessageHash(
+					aztecLendL2Contract.address,
+					sDAICrossChainHarness.l2Token.methods
+						.transfer_public(
+							ownerAddress,
+							aztecLendL2Contract.address,
+							sdaiAmountToRedeem,
+							nonceForDAITransferApproval
+						)
+						.request()
+				);
+	
+				await ownerWallet.setPublicAuth(transferMessageHash, true).send().wait();
+	
+				await sleep(5000);
+
+				const nonceForBurnApprovalBeforeRedeem =
+					await aztecLendL2Contract.methods.nonce_for_burn_approval().view();
+				logger(
+					"Withdrawing sdai to L1 and sending message to redeem from sdai contract"
+				);
+	
+				const [secretForRedeemingDAI, secretHashForRedeemingDAI] =
+					await daiCrossChainHarness.generateClaimSecret();
+	
+				const nonceForRedeem = new Fr(2n);
+				const action = await aztecLendL2Contract
+					.withWallet(sponsorWallet)
+					.methods.deposit_public(
+						ownerAddress,
+						sDAICrossChainHarness.l2Bridge.address,
+						sdaiAmountToRedeem,
+						daiCrossChainHarness.l2Bridge.address,
+						nonceForDAITransferApproval,
+						ownerAddress,
+						secretHashForRedeemingDAI,
+						deadline,
+						ownerEthAddress,
+						ownerEthAddress,
+						nonceForRedeem
+					);
+				const swapMessageHash = await computeAuthWitMessageHash(
+					sponsorAddress,
+					action.request()
+				);
+	
+				await ownerWallet.setPublicAuth(swapMessageHash, true).send().wait();
+
+				const withdrawReceipt = await action.send().wait();
+				expect(withdrawReceipt.status).toBe(TxStatus.MINED);
+
+				await sDAICrossChainHarness.expectPublicBalanceOnL2(
+					ownerAddress,
+					sdaiL2BalanceBeforeRedeem - sdaiAmountToRedeem
+				);
+	
+				// ensure that azteclend contract didn't eat the funds.
+				await sDAICrossChainHarness.expectPublicBalanceOnL2(
+					aztecLendL2Contract.address,
+					0n
+				);
+
+				// check burn approval nonce incremented:
+				const nonceForBurnApprovalAfterRedeem =
+					await aztecLendL2Contract.methods.nonce_for_burn_approval().view();
+				expect(nonceForBurnApprovalAfterRedeem).toBe(
+					nonceForBurnApprovalBeforeRedeem + 1n
+				);
+	
+				logger("Execute withdraw and deposit on the aztecLendPortal!" + sdaiAmountToRedeem);
+				const daiL1BalanceOfPortalBeforeRedeem =
+					await daiCrossChainHarness.getL1BalanceOf(
+						daiCrossChainHarness.tokenPortalAddress
+					);
+	
+				const depositArgs = [
+					sDAICrossChainHarness.tokenPortalAddress.toString(),
+					sdaiAmountToRedeem,
+					daiCrossChainHarness.tokenPortalAddress.toString(),
+					ownerAddress.toString(),
+					secretHashForRedeemingDAI.toString(true),
+					deadline,
+					ownerEthAddress.toString(),
+					true,
+				] as const;
+	
+				// this should also insert a message into the inbox.
+				const txhash = await aztecLendPortal.write.depositPublic(
+					depositArgs,
+					{} as any
+				);
+	
+				await sleep(5000);
+	
+				// dai was redeemed for sdai and sent to portal
+				const daiL1BalanceOfPortalAfterRedeem =
+					await daiCrossChainHarness.getL1BalanceOf(
+						daiCrossChainHarness.tokenPortalAddress
+					);
+	
+				expect(daiL1BalanceOfPortalAfterRedeem).toBeGreaterThan(
+					daiL1BalanceOfPortalBeforeRedeem
+				);
+	
+				const daiAmountToReturn = BigInt(
+					daiL1BalanceOfPortalAfterRedeem - daiL1BalanceOfPortalBeforeRedeem
+				);
+	
+				// Wait for the archiver to process the message
+				await sleep(5000);
+				// send a transfer tx to force through rollup with the message included
+				await daiCrossChainHarness.mintTokensPublicOnL2(0n);
+	
+				const entryKey = await getEntryKeyFromEvent(txhash, inboxAddress.toString());
+	
+				logger("Consuming messages to mint dai on L2");
+				await daiCrossChainHarness.consumeMessageOnAztecAndMintPublicly(
+					daiAmountToReturn,
+					Fr.fromString(entryKey as string),
+					secretForRedeemingDAI
+				);
+	
+				await daiCrossChainHarness.expectPublicBalanceOnL2(
+					ownerAddress,
+					daiL2BalanceBeforeRedeem + daiAmountToReturn
+				);
+	
+				const daiL2BalanceAfterRedeem =
+					await daiCrossChainHarness.getL2PublicBalanceOf(ownerAddress);
+				const sdaiL2BalanceAfterRedeem =
+					await sDAICrossChainHarness.getL2PublicBalanceOf(ownerAddress);
+	
+				logger(
+					"DAI balance before redeem: " + daiL2BalanceBeforeRedeem.toString()
+				);
+				logger(
+					"SDAI balance before redeem  : " +
+						sdaiL2BalanceBeforeRedeem.toString()
+				);
+				logger("***** 🧚‍♀️ Redeem DAI from SDAI on L2 🧚‍♀️ *****");
+				logger(
+					"DAI balance after redeem : ",
+					daiL2BalanceAfterRedeem.toString()
+				);
+				logger(
+					"SDAI balance after redeem  : ",
+					sdaiL2BalanceAfterRedeem.toString()
+				);
+	
+				console.log(
+					"DAI balance before redeem: " + daiL2BalanceBeforeRedeem.toString()
+				);
+				console.log(
+					"SDAI balance before redeem  : " +
+						sdaiL2BalanceBeforeRedeem.toString()
+				);
+				console.log("***** 🧚‍♀️ Redeem L2 assets on L1 Aztec Lend 🧚‍♀️ *****");
+				console.log(
+					"DAI balance after redeem : ",
+					daiL2BalanceAfterRedeem.toString()
+				);
+				console.log(
+					"SDAI balance after redeem  : ",
+					sdaiL2BalanceAfterRedeem.toString()
 				);
 			});
 		});
