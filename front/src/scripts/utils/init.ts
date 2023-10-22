@@ -1,12 +1,5 @@
 import {
 	AccountWalletWithPrivateKey,
-	CheatCodes,
-	CompleteAddress,
-	DebugLogger,
-	EthCheatCodes,
-	SentTx,
-	createAccounts,
-	createDebugLogger,
 	createPXEClient,
 	SchnorrAccountContract,
 	PXE,
@@ -19,16 +12,16 @@ import {
 	createPublicClient,
 	http,
 } from "viem";
-// import { AztecNode, createAztecNodeRpcClient } from "@aztec/types";
-// import { PXEService, createPXEService, getPXEServiceConfig } from "@aztec/pxe";
-import { localAnvil, MNEMONIC } from "./fixtures";
 import { mnemonicToAccount } from "viem/accounts";
-import { PXE_URL, RPC_URL } from "../constants";
-import { userCompleteAddr, userKey, AZTEC_NODE_URL } from "../constants";
+import { PXE_URL, RPC_URL } from "./constants";
+import { userCompleteAddr, userKey } from "./constants";
+import { foundry } from "viem/chains";
+
+export const MNEMONIC =
+	"test test test test test test test test test test test junk";
+export const localAnvil: Chain = foundry;
 
 export async function init(opts = {}): Promise<any> {
-	// const aztecNode = await createAztecNodeRpcClient(AZTEC_NODE_URL);
-	// const pxeConfig = await getPXEServiceConfig();
 	const hdAccount = mnemonicToAccount(MNEMONIC);
 	const pxe: PXE = await createPXEClient(PXE_URL);
 	console.log("pxe: ", await pxe.getNodeInfo());

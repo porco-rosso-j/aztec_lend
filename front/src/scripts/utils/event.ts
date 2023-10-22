@@ -1,6 +1,6 @@
 import { http, createPublicClient, Hex, decodeEventLog } from "viem";
-import { localAnvil } from "./setup/fixtures";
-import inboxArtifact from "../sources/IInbox.json" assert { type: "json" };
+import { localAnvil } from "./init";
+import inboxArtifact from "../artifacts/IInbox.json" assert { type: "json" };
 const RPC_URL = "http://localhost:8545";
 
 export async function getEntryKeyFromEvent(

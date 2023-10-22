@@ -1,68 +1,32 @@
+import { Fr, sleep } from "@aztec/aztec.js";
+import aztecLendPortalArtifact from "./artifacts/AztecLendPortal.json";
+import { AztecLendContract } from "./artifacts/AztecLend";
+import { OutboxAbi, PortalERC20Abi, TokenPortalAbi } from "@aztec/l1-artifacts";
+import { getContract, parseEther, Hex } from "viem";
 import {
-	AccountWallet,
-	AztecAddress,
-	DebugLogger,
-	EthAddress,
-	CompleteAddress,
-	Fr,
-	PXE,
-	TxStatus,
-	computeAuthWitMessageHash,
-	createPXEClient,
-	getSandboxAccountsWallets,
-	sleep,
-} from "@aztec/aztec.js";
-import { deployL1Contract } from "@aztec/ethereum";
-// import aztecLendPortalArtifact from "../../../l1-contracts/artifacts/contracts/AztecLendPortal.sol/AztecLendPortal.json";
-import aztecLendPortalArtifact from "./sources/AztecLendPortal.json";
-import { AztecLendContract } from "./utils/AztecLend";
-import {
-	OutboxAbi,
-	PortalERC20Abi,
-	PortalERC20Bytecode,
-	TokenPortalAbi,
-	TokenPortalBytecode,
-} from "@aztec/l1-artifacts";
-import {
-	Chain,
-	HttpTransport,
-	PublicClient,
-	getContract,
-	parseEther,
-	Hex,
-	HDAccount,
-	createWalletClient,
-	createPublicClient,
-	http,
-} from "viem";
-import { mnemonicToAccount } from "viem/accounts";
-import {
-	PXE_URL,
-	RPC_URL,
 	userAztecAddr,
 	userETHAddr,
 	l2TokenAddress,
 	l2BridgeAddress,
 	tokenPortalAddresses,
 	TOKEN_ADDRESSES,
-	userWallet,
 	aztecLendPortalAddr,
 	aztecLendL2Addr,
 } from "./utils/constants";
-import { localAnvil, MNEMONIC } from "./utils/setup/fixtures";
-import { CrossChainTestHarness } from "./utils/setup/cross-chain";
+import { CrossChainHarness } from "./utils/cross-chain";
 import { getEntryKeyFromEvent } from "./utils/event";
 import {
 	TokenContract,
 	TokenBridgeContract,
 	// @ts-ignore
 } from "@aztec/noir-contracts/types";
-import { init } from "./utils/setup/config";
+import { init } from "./utils/init";
 
 export async function depositDAI(_amount: number) {
 	const amount = new Fr(BigInt(parseEther(_amount.toString())));
 	const { wallet, walletClient, publicClient, pxeClient } = await init();
 
+	/// L1 Contracts
 	const dai = getContract({
 		address: TOKEN_ADDRESSES.DAI as Hex,
 		abi: PortalERC20Abi,
@@ -91,6 +55,28 @@ export async function depositDAI(_amount: number) {
 		publicClient,
 	});
 
+	const l1ContractAddresses = (await pxeClient.getNodeInfo())
+		.l1ContractAddresses;
+	const outbox = getContract({
+		address: l1ContractAddresses.outboxAddress.toString(),
+		abi: OutboxAbi,
+		publicClient,
+	});
+
+	const aztecLendPortal = getContract({
+		address: aztecLendPortalAddr as Hex,
+		abi: aztecLendPortalArtifact.abi,
+		walletClient,
+		publicClient,
+	});
+
+	/// L2 Contracts
+
+	const aztecLendL2Contract = await AztecLendContract.at(
+		aztecLendL2Addr,
+		wallet
+	);
+
 	const l2DAI = await TokenContract.at(l2TokenAddress[0], wallet);
 	const l2SDAI = await TokenContract.at(l2TokenAddress[1], wallet);
 
@@ -104,15 +90,9 @@ export async function depositDAI(_amount: number) {
 		wallet
 	);
 
-	const l1ContractAddresses = (await pxeClient.getNodeInfo())
-		.l1ContractAddresses;
-	const outbox = getContract({
-		address: l1ContractAddresses.outboxAddress.toString(),
-		abi: OutboxAbi,
-		publicClient,
-	});
+	// set up cross-chain harness classes
 
-	const daiCrossChain = new CrossChainTestHarness(
+	const daiCrossChain = new CrossChainHarness(
 		pxeClient,
 		l2DAI,
 		daiBridgeTokenContract,
@@ -126,9 +106,7 @@ export async function depositDAI(_amount: number) {
 		userAztecAddr
 	);
 
-	console.log("daiCrossChain: ", daiCrossChain);
-
-	const sdaiCrossChain = new CrossChainTestHarness(
+	const sdaiCrossChain = new CrossChainHarness(
 		pxeClient,
 		l2SDAI,
 		sDAIBridgeTokenContract,
@@ -142,27 +120,7 @@ export async function depositDAI(_amount: number) {
 		userAztecAddr
 	);
 
-	console.log("sdaiCrossChain: ", sdaiCrossChain);
-
-	const aztecLendPortal = getContract({
-		address: aztecLendPortalAddr as Hex,
-		abi: aztecLendPortalArtifact.abi,
-		walletClient,
-		publicClient,
-	});
-
-	const aztecLendL2Contract = await AztecLendContract.at(
-		aztecLendL2Addr,
-		wallet
-	);
-
-	console.log("aztecLendL2Contract: ", aztecLendL2Contract);
-	console.log(
-		"nonce_for_burn_approval: ",
-		await aztecLendL2Contract.methods.nonce_for_burn_approval().view()
-	);
-
-	const nonceForDAIUnshieldApproval = new Fr(18n);
+	const nonceForDAIUnshieldApproval = new Fr(1n);
 
 	const unshieldToAztecLendMessageHash = await aztecLendL2Contract.methods
 		.compute_authwith_msg_hash(
@@ -295,4 +253,4 @@ export async function depositDAI(_amount: number) {
 	console.log("done!");
 }
 
-export async function claimSDAI(amount: number) {}
+export async function withdrawSDAI(amount: number) {}

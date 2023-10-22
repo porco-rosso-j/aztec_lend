@@ -7,7 +7,6 @@ import {
 	Hex,
 } from "viem";
 import erc20Artifact from "../sources/erc20.json";
-// import { localAnvil } from "./setup/fixtures.js";
 import { foundry, Chain } from "viem/chains";
 import {
 	l2TokenAddress,
@@ -25,11 +24,6 @@ export async function getBalances(): Promise<any> {
 	let balances: bigint[] = [];
 	let i = 0;
 	for (i; i < l2TokenAddress.length; ) {
-		// const tokenCompleteAddr = new CompleteAddress(
-		// 	l2TokenAddress[i].aztecAddr,
-		// 	l2TokenAddress[i].pubkey,
-		// 	l2TokenAddress[i].partialAddr
-		// );
 		l2tokenContract = await TokenContract.at(
 			l2TokenAddress[i],
 			await userWallet()

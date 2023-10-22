@@ -2,9 +2,6 @@ import {
 	AztecAddress,
 	CompleteAddress,
 	Fr,
-	Point,
-	Wallet,
-	PXE,
 	createPXEClient,
 	GrumpkinScalar,
 	SchnorrAccountContract,
@@ -54,22 +51,22 @@ export const userWallet = async (): Promise<AccountWallet> => {
 };
 
 export const aztecLendPortalAddr: EthAddress =
-	"0x3576293ba6adacba1a81397db889558dd91a8519";
+	"0x7c02b58029beea7c1fcc872803dc9818f57a0e61";
 
 export const aztecLendL2Addr: EthAddress =
-	"0x0c7ef2dd26669bcc9cf5fa821d0cdfe2aaa2386e3c493ccbaf8aae42f803ad0f";
+	"0x1c049d3cd3f56551a8f1b1078ce6fbf7b745edb2358129b168582556ea5a635d";
 
 export const l2TokenAddress = [
-	"0x243234c1f942376937b19302a81ff1f914fded5ab72577d80871ad65b3510054", // dai
-	"0x14f5bd4b03c6a96161d14e34670bf8b1f24734fad5436c083a37bed95d0060c0", // sdai
+	"0x2f8c5fc55cc0f0c2d8c52c5d87bc6fa08e7ffc08c890e5d341c3c412b6eae052", // dai
+	"0x06fac37a22f3bb7736f40fc1678629afa82d6c3f8a4179c3f590698a47613127", // sdai
 ];
 
 export const l2BridgeAddress = [
-	"0x16f2b9b3b431fc408e8d1e1cfc09f809dca7841074e8b294c42ca0d92a6fa313", // dai
-	"0x05d19f454c02289e338be0636d431f71a90596a6a64d43ae1b0e8f7b4c8bf78a", // sdai
+	"0x21ad33eb2b35c1bce93aa9a18674e2fdb439202efec9dc7554bcd9a12d171ede", // dai
+	"0x05464fd312333b490ba03a6561618b74ca8a0e7cc01f8c1c5a5af8a07fbd6091", // sdai
 ];
 
 export const tokenPortalAddresses = {
-	DAI: "0x72ac6a36de2f72bd39e9c782e9db0dcc41febfe2",
-	SDAI: "0xe634d83f8e016b04e51f2516e6086b5f238675c7",
+	DAI: "0x1dbbf529d78d6507b0dd71f6c02f41138d828990",
+	SDAI: "0x9a86494ba45ee1f9eeed9cfc0894f6c5d13a1f0b",
 };
