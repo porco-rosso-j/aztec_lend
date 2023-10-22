@@ -95,7 +95,7 @@ const Main = () => {
           USDC: {USDCBalance / 1e6}
         </Stat>
         <Stat>
-         CUSDC: {CUSDCBalance / 1e6}
+         CUSDC: {CUSDCBalance / 1e8}
         </Stat>
       </Card>
       <Tabs variant="line" borderColor="gray" >
