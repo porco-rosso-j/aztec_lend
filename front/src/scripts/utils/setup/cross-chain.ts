@@ -11,6 +11,7 @@ import {
 	Wallet,
 	computeMessageSecretHash,
 	deployL1Contract,
+	sleep,
 } from "@aztec/aztec.js";
 import {
 	OutboxAbi,
@@ -249,9 +250,6 @@ export class CrossChainTestHarness {
 			[this.ethAccount.toString(), amount],
 			{} as any
 		);
-		// expect(
-		// 	await this.underlyingERC20.read.balanceOf([this.ethAccount.toString()])
-		// ).toBe(amount);
 	}
 
 	async getL1BalanceOf(address: EthAddress) {
@@ -319,7 +317,7 @@ export class CrossChainTestHarness {
 		const tx = this.l2Token.methods
 			.mint_public(this.ownerAddress, amount)
 			.send();
-		const receipt = await tx.wait();
+		await tx.wait();
 		//expect(receipt.status).toBe(TxStatus.MINED);
 	}
 
@@ -360,7 +358,12 @@ export class CrossChainTestHarness {
 			)
 			.send();
 		const consumptionReceipt = await consumptionTx.wait();
+		console.log("consumptionReceipt: ", consumptionReceipt);
 		//expect(consumptionReceipt.status).toBe(TxStatus.MINED);
+
+		//await sleep(5000);
+		console.log("consumptionReceipt.txHash: ", consumptionReceipt.txHash);
+		// await this.mintTokensPublicOnL2(0n);
 
 		await this.addPendingShieldNoteToPXE(
 			bridgeAmount,
@@ -513,6 +516,8 @@ export class CrossChainTestHarness {
 		secretHash: Fr,
 		txHash: TxHash
 	) {
+		console.log("pxeService: ", this.pxeService);
+
 		//	this.logger("Adding note to PXE");
 		const storageSlot = new Fr(5);
 		const preimage = new NotePreimage([new Fr(shieldAmount), secretHash]);

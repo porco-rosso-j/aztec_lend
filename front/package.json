@@ -4,6 +4,8 @@
     "license": "MIT",
     "dependencies": {
         "@aztec/aztec.js": "^0.9.0",
+        "@aztec/circuits.js": "^0.9.0",
+        "@aztec/foundation": "^0.9.0",
         "@aztec/l1-artifacts": "^0.9.0",
         "@aztec/noir-contracts": "^0.9.0",
         "@aztec/pxe": "^0.9.0",
@@ -23,11 +25,14 @@
         "@types/react-dom": "^18.2.10",
         "browserify-zlib": "^0.2.0",
         "buffer": "^6.0.3",
+        "copy-webpack-plugin": "^11.0.0",
         "crypto-browserify": "^3.12.0",
         "dotenv": "^16.3.1",
         "framer-motion": "^10.16.4",
         "levelup": "^5.1.1",
         "os-browserify": "^0.3.0",
+        "path-browserify": "^1.0.1",
+        "process": "^0.11.10",
         "react": "^18.2.0",
         "react-dom": "^18.2.0",
         "react-scripts": "5.0.1",
@@ -81,5 +86,9 @@
     "engines": {
         "node": ">=16.14.0 <=18.18.0"
     },
-    "types": "./dest/index.d.ts"
+    "types": "./dest/index.d.ts",
+    "browser": {
+        "path": false,
+        "stream": false
+    }
 }

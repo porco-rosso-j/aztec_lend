@@ -7,6 +7,7 @@ mod util;
 contract AztecLend {
 
     use dep::aztec::{
+        hash::{compute_secret_hash},
         context::{PrivateContext, PublicContext, Context},
         oracle::{context::get_portal_address},
         state_vars::{map::Map, public_state::PublicState},
@@ -229,10 +230,31 @@ contract AztecLend {
     }
     // docs:end:assert_token_is_same
 
+
+   unconstrained fn compute_authwith_msg_hash(
+        azteclend: AztecAddress,
+        token: AztecAddress,
+        user: Field, 
+        amount: Field,
+        nonce: Field
+    ) -> Field {
+        let selector = compute_selector("unshield((Field),(Field),Field,Field)");
+        // compute_authwit_message_hash(azteclend, token, selector, [user, context.this_address(), amount, nonce]);
+        let hash = compute_authwit_message_hash(azteclend, token, selector, [user, azteclend.address, amount, nonce]);
+        hash
+    }
+
     // /// Unconstrained /// 
 
     // this method exists solely for e2e tests to test that nonce gets incremented each time.
     unconstrained fn nonce_for_burn_approval() -> Field {
         storage.nonce_for_burn_approval.read()
     }
+
+    unconstrained fn get_secret_hash(secret: Field) -> Field {
+        let hash = compute_secret_hash(secret);
+        hash
+    }
+
+
 }

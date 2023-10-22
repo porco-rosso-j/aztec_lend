@@ -110,28 +110,18 @@ export async function aztecLendL1L2TestSuite(
 		DAI_ADDRESS
 	);
 
-	console.log("dai l2 addr: ", daiCrossChainHarness.l2Token.address.toString());
 	console.log(
-		"token complete addr: ",
-		daiCrossChainHarness.l2Token.completeAddress
+		"dai l2 token addr: ",
+		daiCrossChainHarness.l2Token.address.toString()
 	);
 
 	console.log(
-		"dai bridge addr: ",
+		"dai l2 bridge addr: ",
 		daiCrossChainHarness.l2Bridge.address.toString()
 	);
 	console.log(
-		"bridge complete addr: ",
-		daiCrossChainHarness.l2Bridge.completeAddress
-	);
-
-	console.log(
-		"dai token portal addr: ",
+		"dai l2 portal addr: ",
 		daiCrossChainHarness.tokenPortal.address.toString()
-	);
-	console.log(
-		"dai token portal complete addr: ",
-		daiCrossChainHarness.tokenPortal.completeAddress
 	);
 
 	// logger("Deploying sDAI Portal, initializing and deploying l2 contract...");
@@ -145,27 +135,18 @@ export async function aztecLendL1L2TestSuite(
 	);
 
 	console.log(
-		"sdai l2 addr: ",
+		"sdai l2 token addr: ",
 		sDAICrossChainHarness.l2Token.address.toString()
 	);
-	console.log("complete addr: ", sDAICrossChainHarness.l2Token.completeAddress);
 
 	console.log(
-		"sdai l2 addr: ",
+		"sdai l2 bridge addr: ",
 		sDAICrossChainHarness.l2Bridge.address.toString()
 	);
-	console.log(
-		"complete addr: ",
-		sDAICrossChainHarness.l2Bridge.completeAddress
-	);
 
 	console.log(
-		"sdai l2 addr: ",
+		"sdai l2 portal addr: ",
 		sDAICrossChainHarness.tokenPortal.address.toString()
-	);
-	console.log(
-		"complete addr: ",
-		sDAICrossChainHarness.tokenPortal.completeAddress
 	);
 
 	//daiCrossChainHarness.getL2PublicBalanceOf;
@@ -184,7 +165,7 @@ export async function aztecLendL1L2TestSuite(
 		address: aztecLendPortalAddress.toString(),
 		abi: aztecLendPortalArtifact.abi,
 		walletClient,
-		//publicClient,
+		publicClient,
 	});
 	// deploy l2 azteclend contract and attach to portal
 	aztecLendL2Contract = await AztecLendContract.deploy(ownerWallet)
@@ -194,6 +175,8 @@ export async function aztecLendL1L2TestSuite(
 	({ registryAddress, inboxAddress } = (
 		await pxe.getNodeInfo()
 	).l1ContractAddresses);
+
+	console.log("aztecLendL2Contract: ", aztecLendL2Contract.address.toString());
 
 	await aztecLendPortal.write.initialize(
 		[registryAddress.toString(), aztecLendL2Contract.address.toString()],

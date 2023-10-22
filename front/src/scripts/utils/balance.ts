@@ -25,12 +25,15 @@ export async function getBalances(): Promise<any> {
 	let balances: bigint[] = [];
 	let i = 0;
 	for (i; i < l2TokenAddress.length; ) {
-		const tokenCompleteAddr = new CompleteAddress(
-			l2TokenAddress[i].aztecAddr,
-			l2TokenAddress[i].pubkey,
-			l2TokenAddress[i].partialAddr
+		// const tokenCompleteAddr = new CompleteAddress(
+		// 	l2TokenAddress[i].aztecAddr,
+		// 	l2TokenAddress[i].pubkey,
+		// 	l2TokenAddress[i].partialAddr
+		// );
+		l2tokenContract = await TokenContract.at(
+			l2TokenAddress[i],
+			await userWallet()
 		);
-		l2tokenContract = new TokenContract(tokenCompleteAddr, await userWallet());
 		balances[i] = await l2tokenContract.methods
 			.balance_of_private(userAztecAddr)
 			.view({ from: userAztecAddr });

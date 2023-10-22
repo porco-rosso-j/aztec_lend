@@ -1,6 +1,5 @@
 import { http, createPublicClient, Hex, decodeEventLog } from "viem";
-// import { getConfigEnvVars } from "@aztec/aztec-node";
-import { localAnvil } from "./setup/fixtures.js";
+import { localAnvil } from "./setup/fixtures";
 import inboxArtifact from "../sources/IInbox.json" assert { type: "json" };
 const RPC_URL = "http://localhost:8545";
 
@@ -8,10 +7,8 @@ export async function getEntryKeyFromEvent(
 	hash: string,
 	inboxAddress: string
 ): Promise<string | undefined> {
-	// const config = { ...getConfigEnvVars(), ...{} };
 	const publicClient = createPublicClient({
 		chain: localAnvil,
-		//transport: http(config.rpcUrl),
 		transport: http(RPC_URL),
 	});
 
@@ -22,7 +19,7 @@ export async function getEntryKeyFromEvent(
 	let i = 0;
 	let entryKey: string | undefined;
 	for (i; i < transaction.logs.length; ) {
-		if (transaction.logs[i].address == inboxAddress) {
+		if (transaction.logs[i].address === inboxAddress) {
 			const decodedTopics = decodeEventLog({
 				abi: inboxArtifact.abi,
 				data: transaction.logs[i].data,

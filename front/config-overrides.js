@@ -1,9 +1,13 @@
 const webpack = require("webpack");
 const { EsbuildPlugin } = require('esbuild-loader')
 //const nodeExternals = require('webpack-node-externals');
+// const path = require('path');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
+const { dirname, resolve } = require('path');
+const { fileURLToPath } = require('url')
 
 module.exports = {
-  webpack: function override(config, webpackEnv) {
+  webpack: function override(config, webpackEnv, argv) {
 
     let loaders = config.resolve
     loaders.fallback = {
@@ -23,7 +27,7 @@ module.exports = {
       os: false,
       "crypto": false,
       "path":false,
-      //"path": require.resolve("path-browserify"),
+      //"path": require.resolve("path"),
       //"util": require.resolve("util/")
       "util": false,
       "assert":false,
@@ -39,13 +43,32 @@ module.exports = {
       // "readline": false,
       // child_process: false,
       // constants: false,
+      "node:fs/promises":false
      
     }
 
+
     config.plugins = (config.plugins || []).concat([
+      // new webpack.DefinePlugin({
+      //   'process.env': {
+      //     NODE_ENV: JSON.stringify(argv.mode || 'production'),
+      //   },
+      // }),
+      new CopyWebpackPlugin({
+        patterns: [
+          {
+            from: `${dirname(require.resolve(`@aztec/circuits.js`)).replace(
+              /\/dest$/,
+              '',
+            )}/resources/aztec3-circuits.wasm`,
+            to: 'aztec3-circuits.wasm',
+          }
+        ],
+      }),
       new webpack.ProvidePlugin({
         // why need to add .js? 
         //process: "process/browser.js",
+        // process: 'process',
         Buffer: ["buffer", "Buffer"],
         // externals: [nodeExternals()],
       }),
@@ -55,6 +78,8 @@ module.exports = {
       ...config.resolve,
       alias: {
         ...config.resolve.alias,
+        "path": false,
+        "fs/promises":false
         // "./node_modules/@graphql-tools/url-loader/cjs$": path.resolve(__dirname, "index.js")
       },
     }
@@ -91,6 +116,14 @@ module.exports = {
       ]
     }
 
+    config.output = {
+      //path: resolve(dirname(fileURLToPath(import.meta.url)), './dest'),
+      filename: 'index.js',
+      publicPath: "auto",
+      scriptType: 'text/javascript'
+    }
+
     return config
-  }
+  },
+
 }

@@ -69,12 +69,16 @@ import { MNEMONIC, localAnvil } from "./fixtures";
 export { deployAndInitializeTokenAndBridgeContracts } from "./cross-chain";
 
 // const { PXE_URL = '', AZTEC_NODE_URL = '' } = process.env;
-const {
-	PXE_URL = "http://localhost:8080",
-	AZTEC_NODE_URL = "http://localhost:8079",
-	// RPC_URL = "https://eth-mainnet.g.alchemy.com/v2/E-jGLB2HIoeK3ByPCNzjQfTVJD3dygEr",
-	RPC_URL = "http://localhost:8545",
-} = process.env;
+// const {
+// 	PXE_URL = "http://localhost:8080",
+// 	AZTEC_NODE_URL = "http://localhost:8079",
+// 	// RPC_URL = "https://eth-mainnet.g.alchemy.com/v2/E-jGLB2HIoeK3ByPCNzjQfTVJD3dygEr",
+// 	RPC_URL = "http://localhost:8545",
+// } = process.env;
+
+const PXE_URL = "http://localhost:8080";
+const AZTEC_NODE_URL = "http://localhost:8079";
+const RPC_URL = "http://localhost:8545";
 
 const getAztecNodeUrl = () => {
 	if (AZTEC_NODE_URL) return AZTEC_NODE_URL;
@@ -216,6 +220,7 @@ async function setupWithSandbox(
 	const l1Contracts = (await pxeClient.getNodeInfo()).l1ContractAddresses;
 	// logger("PXE created, constructing wallets from initial sandbox accounts...");
 	const wallets = await getSandboxAccountsWallets(pxeClient);
+	console.log("wallets: ", wallets);
 
 	const walletClient = createWalletClient<HttpTransport, Chain, HDAccount>({
 		account,

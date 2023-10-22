@@ -10,7 +10,9 @@ import {
 	SchnorrAccountContract,
 	AccountWallet,
 	EthAddress,
+	AccountWalletWithPrivateKey,
 } from "@aztec/aztec.js";
+
 export const TOKEN_ADDRESSES = {
 	DAI: "0x6B175474E89094C44Da98b954EedeAC495271d0F",
 	SDAI: "0x83F20F44975D03b1b09e64809B757c47f942BEeA",
@@ -18,27 +20,25 @@ export const TOKEN_ADDRESSES = {
 	CUSDC: "0xc3d688B66703497DAA19211EEdff47f25384cdc3",
 };
 
-export const CONTRACT_ADDRESSES = {};
-
 export const PXE_URL = "http://localhost:8080";
 export const RPC_URL = "http://localhost:8545";
+export const AZTEC_NODE_URL = "http://localhost:8079";
 
-export const userETHAddr: EthAddress =
-	"0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266";
+export const userETHAddr: EthAddress = new EthAddress(
+	new Fr(0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266n).toBuffer()
+);
 export const userAztecAddr: AztecAddress = new AztecAddress(
 	new Fr(
 		0x25048e8c1b7dea68053d597ac2d920637c99523651edfb123d0632da785970d0n
 	).toBuffer()
 );
 
-const userKey: GrumpkinScalar = {
-	value:
-		15073548173072628677506791134333543744757209793461900362372070659079016923777n,
-};
+export const userKey: GrumpkinScalar = new GrumpkinScalar(
+	15073548173072628677506791134333543744757209793461900362372070659079016923777n
+);
 
 export const userCompleteAddr = async (): Promise<CompleteAddress> => {
 	const pxeClient = await createPXEClient(PXE_URL);
-	console.log("1");
 	return await pxeClient.getRegisteredAccount(userAztecAddr);
 };
 
@@ -46,120 +46,30 @@ export const userWallet = async (): Promise<AccountWallet> => {
 	const pxeClient = await createPXEClient(PXE_URL);
 	const nodeInfo = await pxeClient.getNodeInfo();
 	const accountContract = new SchnorrAccountContract(userKey);
-	console.log("4");
 	const entrypoint = await accountContract.getInterface(
 		await userCompleteAddr(),
 		nodeInfo
 	);
-	return new AccountWallet(pxeClient, entrypoint);
+	return new AccountWalletWithPrivateKey(pxeClient, entrypoint, userKey);
 };
 
-export const tokenPortalAddr: EthAddress =
-	"0x7c02b58029beea7c1fcc872803dc9818f57a0e61";
+export const aztecLendPortalAddr: EthAddress =
+	"0x3576293ba6adacba1a81397db889558dd91a8519";
 
-export const tokenPortalAddresses = {
-	DAI: "0xd28f3246f047efd4059b24fa1fa587ed9fa3e77f",
-	SDAI: "0x31403b1e52051883f2ce1b1b4c89f36034e1221d",
-};
+export const aztecLendL2Addr: EthAddress =
+	"0x0c7ef2dd26669bcc9cf5fa821d0cdfe2aaa2386e3c493ccbaf8aae42f803ad0f";
 
 export const l2TokenAddress = [
-	// dai
-	{
-		aztecAddr: new AztecAddress(
-			new Fr(
-				0x091f1afa476e4755ba5ceee2f91e677bd9613e6018528c21dbfc2de02a2f8383n
-			).toBuffer()
-		),
-		pubkey: new Point(new Fr(0n), new Fr(0n)),
-		partialAddr: new Fr(
-			13515066785944370507802173127046138374898832100657794410404654399198267762199n
-		),
-	},
-	// sdai
-	{
-		aztecAddr: new AztecAddress(
-			new Fr(
-				0x0ab62fc7369597f526605850563945e247bb8499f146e367dc64e282ec17ab18n
-			).toBuffer()
-		),
-		pubkey: new Point(new Fr(0n), new Fr(0n)),
-		partialAddr: new Fr(
-			9863292787200571724098897994273706474153265662694326585271054438522060681451n
-		),
-	},
-	// usdc
-	// {
-	// 	aztecAddr: new AztecAddress(
-	// 		new Fr(
-	// 			0x1ee9c7b8de6324de7409b4c9b2cf23e093efc07f3e99f1f476f17878b03d68c4n
-	// 		).toBuffer()
-	// 	),
-	// 	pubkey: new Point(new Fr(0n), new Fr(0n)),
-	// 	partialAddr: new Fr(
-	// 		12403513090622473966312841563184376924845710596673911367028356004584523039299n
-	// 	),
-	// },
-	// // cusdc
-	// {
-	// 	aztecAddr: new AztecAddress(
-	// 		new Fr(
-	// 			0x1ee9c7b8de6324de7409b4c9b2cf23e093efc07f3e99f1f476f17878b03d68c4n
-	// 		).toBuffer()
-	// 	),
-	// 	pubkey: new Point(new Fr(0n), new Fr(0n)),
-	// 	partialAddr: new Fr(
-	// 		12403513090622473966312841563184376924845710596673911367028356004584523039299n
-	// 	),
-	// },
+	"0x243234c1f942376937b19302a81ff1f914fded5ab72577d80871ad65b3510054", // dai
+	"0x14f5bd4b03c6a96161d14e34670bf8b1f24734fad5436c083a37bed95d0060c0", // sdai
 ];
 
 export const l2BridgeAddress = [
-	// dai
-	{
-		aztecAddr: new AztecAddress(
-			new Fr(
-				0x237209b8dfef1b2661ee188945099d910f958cd7f13a58f70e996d15ce83f8f3n
-			).toBuffer()
-		),
-		pubkey: new Point(new Fr(0n), new Fr(0n)),
-		partialAddr: new Fr(
-			13991846404606834500115279901030844814639958103238176825748343820253533202232n
-		),
-	},
-	// sdai
-	{
-		aztecAddr: new AztecAddress(
-			new Fr(
-				0x0de036a56ac806d253f4a02dadd9ec4b171065be5d3bbfd43827243529205998n
-			).toBuffer()
-		),
-		pubkey: new Point(new Fr(0n), new Fr(0n)),
-		partialAddr: new Fr(
-			5779658186432173873611808080311185987439158562678236555621893127391823416861n
-		),
-	},
-	// usdc
-	// {
-	// 	aztecAddr: new AztecAddress(
-	// 		new Fr(
-	// 			0x1ee9c7b8de6324de7409b4c9b2cf23e093efc07f3e99f1f476f17878b03d68c4n
-	// 		).toBuffer()
-	// 	),
-	// 	pubkey: new Point(new Fr(0n), new Fr(0n)),
-	// 	partialAddr: new Fr(
-	// 		12403513090622473966312841563184376924845710596673911367028356004584523039299n
-	// 	),
-	// },
-	// // cusdc
-	// {
-	// 	aztecAddr: new AztecAddress(
-	// 		new Fr(
-	// 			0x1ee9c7b8de6324de7409b4c9b2cf23e093efc07f3e99f1f476f17878b03d68c4n
-	// 		).toBuffer()
-	// 	),
-	// 	pubkey: new Point(new Fr(0n), new Fr(0n)),
-	// 	partialAddr: new Fr(
-	// 		12403513090622473966312841563184376924845710596673911367028356004584523039299n
-	// 	),
-	// },
+	"0x16f2b9b3b431fc408e8d1e1cfc09f809dca7841074e8b294c42ca0d92a6fa313", // dai
+	"0x05d19f454c02289e338be0636d431f71a90596a6a64d43ae1b0e8f7b4c8bf78a", // sdai
 ];
+
+export const tokenPortalAddresses = {
+	DAI: "0x72ac6a36de2f72bd39e9c782e9db0dcc41febfe2",
+	SDAI: "0xe634d83f8e016b04e51f2516e6086b5f238675c7",
+};
