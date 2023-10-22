@@ -16,7 +16,7 @@ export async function depositUSDC(amount: number) {
 		redeemTokenPortalL2Address: CUSDC.l2PortalAddress
 	};
 
-	depositERC20(config, amount, 6);
+	await depositERC20(config, amount, 6);
 }
 
 export async function withdrawCUSDC(amount: number) {
@@ -31,5 +31,5 @@ export async function withdrawCUSDC(amount: number) {
 		redeemTokenPortalL2Address: USDC.l2PortalAddress
 	};
 
-	depositERC20(config, amount);
+	await depositERC20(config, amount);
 }

@@ -31,7 +31,8 @@ export class TokenConfig {
 }
 
 export async function depositERC20(config: TokenConfig, _amount: number, decimals: number = 18) {
-	const amount = new Fr(BigInt(parseEther(_amount.toString()) * BigInt(decimals) / BigInt(18)));
+	const toDeposit = parseEther(_amount.toString()) * BigInt(10 ** decimals) / BigInt(10 ** 18);
+	const amount = new Fr(toDeposit);
 	const { wallet, walletClient, publicClient, pxeClient } = await init();
 
 	/// L1 Contracts
