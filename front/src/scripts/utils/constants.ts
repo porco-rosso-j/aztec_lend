@@ -10,13 +10,6 @@ import {
 	AccountWalletWithPrivateKey,
 } from "@aztec/aztec.js";
 
-export const TOKEN_ADDRESSES = {
-	DAI: "0x6B175474E89094C44Da98b954EedeAC495271d0F",
-	SDAI: "0x83F20F44975D03b1b09e64809B757c47f942BEeA",
-	USDC: "0x07865c6E87B9F70255377e024ace6630C1Eaa37F",
-	CUSDC: "0xc3d688B66703497DAA19211EEdff47f25384cdc3",
-};
-
 export const PXE_URL = "http://localhost:8080";
 export const RPC_URL = "http://localhost:8545";
 export const AZTEC_NODE_URL = "http://localhost:8079";
@@ -51,22 +44,35 @@ export const userWallet = async (): Promise<AccountWallet> => {
 };
 
 export const aztecLendPortalAddr: EthAddress =
-	"0x7c02b58029beea7c1fcc872803dc9818f57a0e61";
+	"0x1ec5df6299467fb19b4e425eb47df46c8f245078";
 
 export const aztecLendL2Addr: EthAddress =
-	"0x1c049d3cd3f56551a8f1b1078ce6fbf7b745edb2358129b168582556ea5a635d";
+	"0x091a91697829b7e19bb68654bc909f8c31fb2de13568d6b22f15a803c9e79648";
 
-export const l2TokenAddress = [
-	"0x2f8c5fc55cc0f0c2d8c52c5d87bc6fa08e7ffc08c890e5d341c3c412b6eae052", // dai
-	"0x06fac37a22f3bb7736f40fc1678629afa82d6c3f8a4179c3f590698a47613127", // sdai
-];
+export const DAI = {
+	l1Address: "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+	l2Address: "0x0373539016127f44507ed664e496f6ff5224429092402cfb1137428a157b62f3",
+	l1PortalAddress: "0x192ad6993aa1a7d642461c1d0e7224cf32b174e3",
+	l2PortalAddress: "0x2ff33975a35c8f5b979db9bffbc2fc3481cbf43d7f2e36fe57ab73c51e74e927"
+}
 
-export const l2BridgeAddress = [
-	"0x21ad33eb2b35c1bce93aa9a18674e2fdb439202efec9dc7554bcd9a12d171ede", // dai
-	"0x05464fd312333b490ba03a6561618b74ca8a0e7cc01f8c1c5a5af8a07fbd6091", // sdai
-];
+export const SDAI = {
+	l1Address: "0x83F20F44975D03b1b09e64809B757c47f942BEeA",
+	l2Address: "0x20f0a60b5de20d025a6d18e9f63007404a1731a0de0ec8c8bbcc385f084c7be9",
+	l1PortalAddress: "0xd4fa1258d1a60639e4c8bae59e3110054dd622cc",
+	l2PortalAddress: "0x2befca0c9d17c6d6199aed56c9540f48c47f68af6bc2fa8f91416586bca3fc93"
+}
 
-export const tokenPortalAddresses = {
-	DAI: "0x1dbbf529d78d6507b0dd71f6c02f41138d828990",
-	SDAI: "0x9a86494ba45ee1f9eeed9cfc0894f6c5d13a1f0b",
-};
+export const USDC = {
+	l1Address: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+	l2Address: "0x09825828fad898e8fcfc19320494c98d1e1c4ae70a1599d8e272d45d50b9421d",
+	l1PortalAddress: "0xdf05d9c5ccff9bbb65d780746b7e829a4465a0a6",
+	l2PortalAddress: "0x03ffa578f00a695df86d70d49439ba990726ec29496238950ccce145b2d39ce3"
+}
+
+export const CUSDC = {
+	l1Address: "0x39AA39c021dfbaE8faC545936693aC917d5E7563",
+	l2Address: "0x0f52d8dd1d6169f0150b97dd877c190f4b014d34c1d2ef40c71a86380c5887f1",
+	l1PortalAddress: "0x7c4d072293651df0bf274a454f4c3ec70fc5a866",
+	l2PortalAddress: "0x238d1710b331897644d7403bb91a06ba696f573b8fe0775f51cffba791cb9d53"
+}

@@ -6,8 +6,8 @@ import {
 } from "@chakra-ui/react";
 import { useState, useEffect } from 'react'
 import { depositDAI, withdrawSDAI } from 'src/scripts/sdai-deposit';
-import { depositUSDC, withdrawCUSDC } from 'src/scripts/cusd-deposit';
-import { TOKEN_ADDRESSES, userAztecAddr } from 'src/scripts/utils/constants';
+import { depositUSDC, withdrawCUSDC } from 'src/scripts/cusdc-deposit';
+import { userAztecAddr } from 'src/scripts/utils/constants';
 import { getBalances } from "src/scripts/utils/balance"
 import { shorterHash } from "src/scripts/utils/helpers"
 // import { initialize } from "src/scripts/utils/setup";
@@ -20,7 +20,7 @@ const Main = () => {
   const [depositAmount, setDepositAmount] = useState(0);
 
   // withdraw 
-  const [withdrawToken, setWithdrawToken] = useState('USDC');
+  const [withdrawToken, setWithdrawToken] = useState('SDAI');
   const [withdrawAmount, setWithdrawAmount] = useState(0);
 
   // balances

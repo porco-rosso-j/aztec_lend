@@ -3,9 +3,7 @@ import {
 	AztecAddress,
 	DebugLogger,
 	EthAddress,
-	Fr,
 	PXE,
-	computeAuthWitMessageHash,
 	sleep,
 } from "@aztec/aztec.js";
 import { deployL1Contract } from "@aztec/ethereum";
@@ -20,12 +18,9 @@ import {
 	Hex,
 } from "viem";
 // import { CrossChainTestHarness } from "./cross-chain.js";
-// import { fundDAI } from "./helpers/fundERC20.js";
 // import { CrossChainTestHarness } from "../test/shared/cross_chain_test_harness.js";
 import { CrossChainTestHarness } from "./cross-chain.js";
-import { fundDAI } from "./helpers/fundERC20.js";
-
-const TIMEOUT = 250_000;
+import { fundERC20 } from "../test/helpers/fundERC20.js";
 
 /** Objects to be returned by the azteclend setup function */
 export type AztecLendSetupContext = {
@@ -50,6 +45,13 @@ const SDAI_ADDRESS: EthAddress = EthAddress.fromString(
 	"0x83F20F44975D03b1b09e64809B757c47f942BEeA"
 );
 
+const USDC_ADDRESS: EthAddress = EthAddress.fromString(
+	"0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
+);
+const CUSDC_ADDRESS: EthAddress = EthAddress.fromString(
+	"0x39AA39c021dfbaE8faC545936693aC917d5E7563"
+);
+
 export async function aztecLendL1L2TestSuite(
 	setup: () => Promise<AztecLendSetupContext>,
 	//setup: () => Promise<any>,
@@ -69,12 +71,15 @@ export async function aztecLendL1L2TestSuite(
 
 	let daiCrossChainHarness: CrossChainTestHarness;
 	let sDAICrossChainHarness: CrossChainTestHarness;
+	let usdcCrossChainHarness: CrossChainTestHarness;
+	let cUSDCCrossChainHarness: CrossChainTestHarness;
 
 	let aztecLendPortal: any;
 	let aztecLendPortalAddress: EthAddress;
 	let aztecLendL2Contract: AztecLendContract;
 
 	const daiAmountToBridge = parseEther("1000");
+	const usdcAmountToBridge = parseEther("0.000000001");
 	const deadlineForSDAIDeposit = BigInt(2 ** 32 - 1); // max uint32
 
 	let registryAddress: EthAddress;
@@ -120,7 +125,7 @@ export async function aztecLendL1L2TestSuite(
 		daiCrossChainHarness.l2Bridge.address.toString()
 	);
 	console.log(
-		"dai l2 portal addr: ",
+		"dai l1 portal addr: ",
 		daiCrossChainHarness.tokenPortal.address.toString()
 	);
 
@@ -145,13 +150,57 @@ export async function aztecLendL1L2TestSuite(
 	);
 
 	console.log(
-		"sdai l2 portal addr: ",
+		"sdai l1 portal addr: ",
 		sDAICrossChainHarness.tokenPortal.address.toString()
 	);
 
-	//daiCrossChainHarness.getL2PublicBalanceOf;
+	usdcCrossChainHarness = await CrossChainTestHarness.new(
+		pxe,
+		publicClient,
+		walletClient,
+		ownerWallet,
+		logger,
+		USDC_ADDRESS
+	);
 
-	// logger("Deploy SavingsDAI portal on L1 and L2...");
+	console.log(
+		"usdc l2 token addr: ",
+		usdcCrossChainHarness.l2Token.address.toString()
+	);
+
+	console.log(
+		"usdc l2 bridge addr: ",
+		usdcCrossChainHarness.l2Bridge.address.toString()
+	);
+	console.log(
+		"usdc l1 portal addr: ",
+		usdcCrossChainHarness.tokenPortal.address.toString()
+	);
+
+	cUSDCCrossChainHarness = await CrossChainTestHarness.new(
+		pxe,
+		publicClient,
+		walletClient,
+		ownerWallet,
+		logger,
+		CUSDC_ADDRESS
+	);
+
+	console.log(
+		"cUSDC l2 token addr: ",
+		cUSDCCrossChainHarness.l2Token.address.toString()
+	);
+
+	console.log(
+		"cUSDC l2 bridge addr: ",
+		cUSDCCrossChainHarness.l2Bridge.address.toString()
+	);
+	console.log(
+		"cUSDC l1 portal addr: ",
+		cUSDCCrossChainHarness.tokenPortal.address.toString()
+	);
+
+	// logger("Deploy AztecLend portal on L1 and L2...");
 	aztecLendPortalAddress = await deployL1Contract(
 		walletClient,
 		publicClient,
@@ -184,8 +233,7 @@ export async function aztecLendL1L2TestSuite(
 	);
 
 	// logger("Getting some dai");
-	await fundDAI(ownerEthAddress.toString());
-
+	await fundERC20(DAI_ADDRESS.toString(), ownerEthAddress.toString(), "1000000");
 	// 1. Approve and deposit dai to the portal and move to L2
 	const [secretForMintingDai, secretHashForMintingDai] =
 		await daiCrossChainHarness.generateClaimSecret();
@@ -205,7 +253,6 @@ export async function aztecLendL1L2TestSuite(
 	// Perform an unrelated transaction on L2 to progress the rollup. Here we mint public tokens.
 	await daiCrossChainHarness.mintTokensPublicOnL2(0n);
 
-	// 2. Claim WETH on L2
 	// logger("Minting dai on L2");
 	await daiCrossChainHarness.consumeMessageOnAztecAndMintSecretly(
 		secretHashForRedeemingDai,
@@ -218,6 +265,40 @@ export async function aztecLendL1L2TestSuite(
 		daiAmountToBridge,
 		secretForRedeemingDai
 	);
+
+	await fundERC20(USDC_ADDRESS.toString(), ownerEthAddress.toString(), "0.000001");
+
+	const [secretForMintingUsdc, secretHashForMintingUsdc] =
+		await usdcCrossChainHarness.generateClaimSecret();
+
+	const [secretForRedeemingUsdc, secretHashForRedeemingUsdc] =
+		await usdcCrossChainHarness.generateClaimSecret();
+
+	const messageKeyUsdc = await usdcCrossChainHarness.sendTokensToPortalPrivate(
+		secretHashForRedeemingUsdc,
+		usdcAmountToBridge,
+		secretHashForMintingUsdc
+	);
+
+	// Wait for the archiver to process the message
+	await sleep(5000);
+
+	// Perform an unrelated transaction on L2 to progress the rollup. Here we mint public tokens.
+	await usdcCrossChainHarness.mintTokensPublicOnL2(0n);
+
+	// logger("Minting usdc on L2");
+	await usdcCrossChainHarness.consumeMessageOnAztecAndMintSecretly(
+		secretHashForRedeemingUsdc,
+		usdcAmountToBridge,
+		messageKeyUsdc,
+		secretForMintingUsdc
+	);
+
+	await usdcCrossChainHarness.redeemShieldPrivatelyOnL2(
+		usdcAmountToBridge,
+		secretForRedeemingUsdc
+	);
+
 	console.log("done");
 }
 // retunr smth
