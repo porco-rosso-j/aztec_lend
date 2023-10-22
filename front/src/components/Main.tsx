@@ -1,15 +1,10 @@
 // TransferTabs.tsx
 
 import {
-  Select, Spinner, Card, CardBody, Box, Tabs, TabList, Tab, TabPanels, TabPanel,
-  Input, Flex, Button, StatNumber, Stat, StatLabel
+  Select, Spinner, Card, Box, Tabs, TabList, Tab, TabPanels, TabPanel,
+  Input, Flex, Button, Stat,
 } from "@chakra-ui/react";
 import { useState, useEffect } from 'react'
-// import { depositDAI, withdrawSDAI } from 'src/scripts/sdai.js';
-// import { depositUSDC, withdrawCUSDC } from 'src/scripts/compound.js';
-// import { TOKEN_ADDRESSES, CONTRACT_ADDRESSES } from 'src/scripts/utils/constants.js';
-// import { getBalances } from "src/scripts/utils/balance.js"
-// import { shorterHash } from "src/scripts/utils/helpers.js"
 import { depositDAI, withdrawSDAI } from 'src/scripts/sdai-deposit';
 import { depositUSDC, withdrawCUSDC } from 'src/scripts/cusd-deposit';
 import { TOKEN_ADDRESSES, userAztecAddr } from 'src/scripts/utils/constants';
@@ -47,9 +42,7 @@ const Main = () => {
   });
 
   const onDeposit = async () => {
-    console.log("called?")
     setLoading(true);
-    console.log("then?")
     if (depositAmount === 0) {
       console.log("invalid amount")
       return;
@@ -57,7 +50,6 @@ const Main = () => {
     console.log("depositToken: ", depositToken)
     try {
       if (depositToken === 'DAI') {
-        console.log("go")
           await depositDAI(depositAmount)
       } else {
           await depositUSDC(depositAmount)
@@ -90,7 +82,7 @@ const Main = () => {
 
   return (
     <Box>
-      <Card mb="20px" p="15px" variant='darkCard'>
+      <Card mb="35px" p="15px" variant='darkCard'>
        <Box mb={2} fontSize={18}>Account: { shorterHash(userAztecAddr.toString())} </Box>
        <Box mb={2} fontSize={18}>Balances:</Box>
         <Stat>
@@ -106,24 +98,24 @@ const Main = () => {
          CUSDC: {CUSDCBalance / 1e6}
         </Stat>
       </Card>
-      <Tabs variant="enclosed">
+      <Tabs variant="line" borderColor="gray" >
         <TabList>
           <Tab w="50%" color="white">deposit</Tab>
           <Tab w="50%" color="white">withdraw</Tab>
         </TabList>
         <TabPanels>
           <TabPanel >
-            <Box p={4} mb={4} borderRadius="md" boxShadow="md" pos="relative">
+            <Box p={4} mb={4} borderRadius="none">
               <Box mb={4}>
                 <label>1: token</label>
-                <Select placeholder='Select Asset' defaultValue={'DAI'} onChange={(e) => setDepositToken(e.target.value)}>
+                <Select placeholder='Select Asset' borderColor="gray" defaultValue={'DAI'} onChange={(e) => setDepositToken(e.target.value)}>
                   <option value='DAI'> DAI to Savings DAI </option>
                   <option value='USDC'> USDC to Compound </option>
                 </Select>
               </Box>
               <Box mb={4}>
               <label>2: amount</label>
-              <Input placeholder="10" onChange={(e) => setDepositAmount(Number(e.target.value))} />
+              <Input placeholder="10" borderColor="gray" onChange={(e) => setDepositAmount(Number(e.target.value))} />
               </Box>
               <Button onClick={onDeposit} w="100%" mt="16px">Confirm</Button>
               {loading && <Flex minH={200} justifyContent="center" alignItems="center"
@@ -136,14 +128,14 @@ const Main = () => {
           <Box p={4} mb={4} borderRadius="md" boxShadow="md" pos="relative">
               <Box mb={4}>
                 <label>1: token</label>
-                <Select placeholder='Select Asset' defaultValue={'SDAI'} onChange={(e) => setWithdrawToken(e.target.value)}>
+                <Select placeholder='Select Asset'  borderColor="gray"  defaultValue={'SDAI'} onChange={(e) => setWithdrawToken(e.target.value)}>
                   <option value='SDAI'> DAI from Savings DAI </option>
                   <option value='CUSDC'> CUSDC from Compound </option>
                 </Select>
               </Box>
               <Box mb={4}>
               <label>2: amount</label>
-              <Input placeholder="10" onChange={(e) => setWithdrawAmount(Number(e.target.value))} />
+              <Input placeholder="10" borderColor="gray" onChange={(e) => setWithdrawAmount(Number(e.target.value))} />
               </Box>
               <Button onClick={onWithdraw} w="100%" mt="16px">Confirm</Button>
               {loading && <Flex minH={200} justifyContent="center" alignItems="center"

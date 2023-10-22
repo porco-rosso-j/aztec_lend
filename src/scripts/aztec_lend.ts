@@ -23,7 +23,7 @@ import {
 // import { fundDAI } from "./helpers/fundERC20.js";
 // import { CrossChainTestHarness } from "../test/shared/cross_chain_test_harness.js";
 import { CrossChainTestHarness } from "./cross-chain.js";
-import { fundDAI } from "../test/helpers/fundERC20.js";
+import { fundDAI } from "./helpers/fundERC20.js";
 
 const TIMEOUT = 250_000;
 

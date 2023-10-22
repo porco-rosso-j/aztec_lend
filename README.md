@@ -2,11 +2,17 @@
 
 ## Overview
 
-AztecLend allows for private lending operation to DeFi lending protocol, such as Spark and Compound from Aztec, a private zk-rollup.
+AztecLend allows for private lending operations to DeFi lending protocol, such as Spark(Savings DAI) and Compound from Aztec, a private zk-rollup.
 
 AztecLend contract on Aztec L2 acts like a strategy vault that receives deposits, bridges the token, and has the AztecLend contract on L1 execute a requested strategy.
 
-Users can receive/redeem wrapped share tokens, such as sDAI, aWETH, and cUSDC, directly from Aztec bridge on L2 in a private(optional) manner.
+Users can receive/redeem wrapped share tokens, such as sDAI, cUSDC, and aWETH, directly from Aztec bridge on L2 in a private(optional) manner.
+
+## Technologies
+
+- [Aztec](https://aztec.network/): [Noir](https://noir-lang.org/) and [SandBox]https://docs.aztec.network/dev_docs/getting_started/sandbox()
+- [Spark Protocol](https://spark.fi/): [sDAI(SavingsDAI)](https://docs.spark.fi/defi-infrastructure/sdai-overview)
+- [Compound](https://compound.finance/): Compound V2
 
 ## Setup
 
@@ -28,6 +34,8 @@ cd l1-contracts
 yarn hardhat compile
 ```
 
+### Test
+
 ```shell
 cd aztec-contracts
 aztec-cli compile ./ --typescript ../src/test/fixtures/
@@ -36,4 +44,17 @@ aztec-cli compile ./ --typescript ../src/test/fixtures/
 ```shell
 cd src
 yarn test
+```
+
+### Frontend
+
+```shell
+cd aztec-contracts
+aztec-cli compile ./ --typescript ../front/scripts/artifacts/
+```
+
+```shell
+cd front
+yarn
+yarn start
 ```
