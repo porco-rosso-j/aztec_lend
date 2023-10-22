@@ -16,7 +16,8 @@
     },
     "include": [
         "test",
-        "source",
+        "source", "scripts/aztec_lend.ts",
+         "scripts"
       ],  
     "exclude": [
         "node_modules"

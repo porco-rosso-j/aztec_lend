@@ -86,11 +86,17 @@ export class AztecLendContract extends ContractBase {
     /** _assert_token_is_same(token: struct, token_bridge: struct) */
     _assert_token_is_same: ((token: AztecAddressLike, token_bridge: AztecAddressLike) => ContractFunctionInteraction) & Pick<ContractMethod, 'selector'>;
 
+    /** compute_authwith_msg_hash(azteclend: struct, token: struct, user: field, amount: field, nonce: field) */
+    compute_authwith_msg_hash: ((azteclend: AztecAddressLike, token: AztecAddressLike, user: FieldLike, amount: FieldLike, nonce: FieldLike) => ContractFunctionInteraction) & Pick<ContractMethod, 'selector'>;
+
     /** deposit_private(input_asset: struct, input_asset_bridge: struct, input_amount: field, output_asset_bridge: struct, nonce_for_unshield_approval: field, secret_hash_for_redeeming_minted_notes: field, secret_hash_for_L1_to_l2_message: field, deadline_for_L1_to_l2_message: field, canceller_for_L1_to_L2_message: struct, caller_on_L1: struct) */
     deposit_private: ((input_asset: AztecAddressLike, input_asset_bridge: AztecAddressLike, input_amount: FieldLike, output_asset_bridge: AztecAddressLike, nonce_for_unshield_approval: FieldLike, secret_hash_for_redeeming_minted_notes: FieldLike, secret_hash_for_L1_to_l2_message: FieldLike, deadline_for_L1_to_l2_message: FieldLike, canceller_for_L1_to_L2_message: EthAddressLike, caller_on_L1: EthAddressLike) => ContractFunctionInteraction) & Pick<ContractMethod, 'selector'>;
 
     /** deposit_public(sender: struct, input_asset_bridge: struct, input_amount: field, output_asset_bridge: struct, nonce_for_transfer_approval: field, recipient: struct, secret_hash_for_L1_to_l2_message: field, deadline_for_L1_to_l2_message: field, canceller_for_L1_to_L2_message: struct, caller_on_L1: struct, nonce_for_swap_approval: field) */
     deposit_public: ((sender: AztecAddressLike, input_asset_bridge: AztecAddressLike, input_amount: FieldLike, output_asset_bridge: AztecAddressLike, nonce_for_transfer_approval: FieldLike, recipient: AztecAddressLike, secret_hash_for_L1_to_l2_message: FieldLike, deadline_for_L1_to_l2_message: FieldLike, canceller_for_L1_to_L2_message: EthAddressLike, caller_on_L1: EthAddressLike, nonce_for_swap_approval: FieldLike) => ContractFunctionInteraction) & Pick<ContractMethod, 'selector'>;
+
+    /** get_secret_hash(secret: field) */
+    get_secret_hash: ((secret: FieldLike) => ContractFunctionInteraction) & Pick<ContractMethod, 'selector'>;
 
     /** is_valid_public(message_hash: field) */
     is_valid_public: ((message_hash: FieldLike) => ContractFunctionInteraction) & Pick<ContractMethod, 'selector'>;
