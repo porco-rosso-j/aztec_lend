@@ -1,20 +1,4 @@
-import { CompleteAddress } from "@aztec/aztec.js";
-import {
-	getContract,
-	createWalletClient,
-	createPublicClient,
-	http,
-	Hex,
-} from "viem";
-import erc20Artifact from "../sources/erc20.json";
-import { foundry, Chain } from "viem/chains";
-import {
-	l2TokenAddress,
-	userWallet,
-	userCompleteAddr,
-	userAztecAddr,
-	TOKEN_ADDRESSES,
-} from "./constants";
+import { l2TokenAddress, userWallet, userAztecAddr } from "./constants";
 //@ts-ignore
 import { TokenContract } from "@aztec/noir-contracts/types";
 
@@ -35,8 +19,8 @@ export async function getBalances(): Promise<any> {
 		i = i + 1;
 	}
 	const tokenBalances = {
-		DAI: balances[0],
-		SDAI: balances[1],
+		DAI: balances[0] || 0,
+		SDAI: balances[1] || 0,
 		USDC: balances[2] || 0,
 		CUSDC: balances[3] || 0,
 	};

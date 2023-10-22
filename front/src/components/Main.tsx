@@ -21,11 +21,11 @@ const Main = () => {
   const [loading, setLoading] = useState(false);
 
   // deposit 
-  const [depositToken, setDepositToken] = useState('');
+  const [depositToken, setDepositToken] = useState('DAI');
   const [depositAmount, setDepositAmount] = useState(0);
 
   // withdraw 
-  const [withdrawToken, setWithdrawToken] = useState('');
+  const [withdrawToken, setWithdrawToken] = useState('USDC');
   const [withdrawAmount, setWithdrawAmount] = useState(0);
 
   // balances
