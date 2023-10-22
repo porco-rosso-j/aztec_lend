@@ -10,8 +10,8 @@ Users can receive/redeem wrapped share tokens, such as sDAI, cUSDC, and aWETH, d
 
 ## Technologies
 
-- [Aztec](https://aztec.network/): [Noir](https://noir-lang.org/) and [SandBox]https://docs.aztec.network/dev_docs/getting_started/sandbox()
-- [Spark Protocol](https://spark.fi/): [sDAI(SavingsDAI)](https://docs.spark.fi/defi-infrastructure/sdai-overview)
+- [Aztec](https://aztec.network/): [Noir](https://noir-lang.org/) and [SandBox](https://docs.aztec.network/dev_docs/getting_started/sandbox)
+- [Spark Protocol](https://spark.fi/): [sDAI](https://docs.spark.fi/defi-infrastructure/sdai-overview)(SavingsDAI)
 - [Compound](https://compound.finance/): Compound V2
 
 ## Setup
