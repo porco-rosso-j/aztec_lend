@@ -1,5 +1,7 @@
 # AztecLend
 
+Built at ETH Global Online 2023: [Project page](https://ethglobal.com/showcase/azteclend-fpkys)
+
 ## Overview
 
 AztecLend allows for private lending operations to DeFi lending protocol, such as Spark(Savings DAI) and Compound from Aztec, a private zk-rollup.
